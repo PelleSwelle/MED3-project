@@ -13,13 +13,16 @@ if not cap.isOpened():
 # def getDeviceOrientation():
 #     pass
 
+blackAndWhite = False
+
 while True:
     now = datetime.now()
     currentTime = now.strftime("%H%M%S")
 
+
     ret, frame = cap.read()
     frame = cv.flip(frame, -1)
-    cv.imshow('Input', frame)
+
 
     c = cv.waitKey(1)
 
@@ -27,8 +30,22 @@ while True:
         file = "cap" + currentTime + ".jpg"
         cv.imwrite(saveDir + file, frame)
         print(file, " is stored in ", saveDir)
+    elif c == ord("b"):
+        if blackAndWhite == False:
+            blackAndWhite = True
+        else:
+            blackAndWhite = False
     elif c == 27:
         break
+
+
+    if blackAndWhite:
+        # TODO upper and lower threshold
+        output = cv.Canny(frame, 1, 100)
+    else:
+        output = frame
+
+    cv.imshow("Camera feed", output)
 
 cap.release()
 cv.destroyAllWindows()
