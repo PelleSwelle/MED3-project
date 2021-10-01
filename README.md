@@ -2,10 +2,7 @@
 
 Group project for the third semester of Medialogy, AAU CPH
 
-I am the readMe for the project.
-
-
-ass
-
-
-poop
+current inputs: 
++ p : capture frame from video feed.
++ b : toggle grayscale mode
++ c : toggle Canny filter

@@ -1,5 +1,5 @@
 import cv2 as cv
-from datetime import datetime
+from datetime import datetime # used to name the images, that are captured
 
 saveDir = "./captures/"
 
@@ -13,7 +13,8 @@ if not cap.isOpened():
 # def getDeviceOrientation():
 #     pass
 
-blackAndWhite = False
+cannyMode = False
+grayScaleMode = False
 
 while True:
     now = datetime.now()
@@ -22,23 +23,39 @@ while True:
     ret, input = cap.read()
     input = cv.flip(input, -1)
 
-    if blackAndWhite:
+    if cannyMode:
         # TODO upper and lower threshold
         output = cv.Canny(input, 1, 100)
     else:
         output = input
+    if grayScaleMode:
+        output = cv.cvtColor(input, cv.COLOR_BGR2GRAY)
 
     c = cv.waitKey(1)
 
+    # capture image
     if c == ord('p'):
         file = "cap" + currentTime + ".jpg"
         cv.imwrite(saveDir + file, output)
         print(file, " is stored in ", saveDir)
-    elif c == ord("b"):
-        if blackAndWhite == False:
-            blackAndWhite = True
+
+    # toggle canny mode
+    elif c == ord("c"):
+        if cannyMode == False:
+            cannyMode = True
         else:
-            blackAndWhite = False
+            cannyMode = False
+
+    # toggle grayscale
+    elif c == ord("g"):
+        if not grayScaleMode:
+            grayScaleMode = True
+        else:
+            grayScaleMode = False
+
+
+
+    # exit
     elif c == 27:
         break
 
