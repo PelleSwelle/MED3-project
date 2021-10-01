@@ -13,9 +13,6 @@ if not cap.isOpened():
 # def getDeviceOrientation():
 #     pass
 
-# this is a test comment
-
-
 while True:
     now = datetime.now()
     currentTime = now.strftime("%H%M%S")
