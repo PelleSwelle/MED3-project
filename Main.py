@@ -19,16 +19,20 @@ while True:
     now = datetime.now()
     currentTime = now.strftime("%H%M%S")
 
+    ret, input = cap.read()
+    input = cv.flip(input, -1)
 
-    ret, frame = cap.read()
-    frame = cv.flip(frame, -1)
-
+    if blackAndWhite:
+        # TODO upper and lower threshold
+        output = cv.Canny(input, 1, 100)
+    else:
+        output = input
 
     c = cv.waitKey(1)
 
     if c == ord('p'):
         file = "cap" + currentTime + ".jpg"
-        cv.imwrite(saveDir + file, frame)
+        cv.imwrite(saveDir + file, output)
         print(file, " is stored in ", saveDir)
     elif c == ord("b"):
         if blackAndWhite == False:
@@ -37,13 +41,6 @@ while True:
             blackAndWhite = False
     elif c == 27:
         break
-
-
-    if blackAndWhite:
-        # TODO upper and lower threshold
-        output = cv.Canny(frame, 1, 100)
-    else:
-        output = frame
 
     cv.imshow("Camera feed", output)
 
