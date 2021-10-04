@@ -1,5 +1,5 @@
 import cv2 as cv
-from datetime import datetime # used to name the images, that are captured
+from datetime import datetime  # used to name the images, that are captured
 
 saveDir = "./captures/"
 
@@ -9,19 +9,18 @@ cap = cv.VideoCapture(0)
 if not cap.isOpened():
     raise IOError("Cannot open webcam")
 
-# TODO make this
-# def getDeviceOrientation():
-#     pass
 
-cannyMode = False
 grayScaleMode = False
+thresholdVal = 128
+maxVal = 255
+cannyMode = False
+
 
 while True:
     now = datetime.now()
     currentTime = now.strftime("%H%M%S")
 
     ret, input = cap.read()
-    input = cv.flip(input, -1)
 
     if cannyMode:
         # TODO upper and lower threshold
@@ -33,6 +32,7 @@ while True:
 
     c = cv.waitKey(1)
 
+    # **************** INPUTS ****************
     # capture image
     if c == ord('p'):
         file = "cap" + currentTime + ".jpg"
@@ -41,23 +41,15 @@ while True:
 
     # toggle canny mode
     elif c == ord("c"):
-        if cannyMode == False:
-            cannyMode = True
-        else:
-            cannyMode = False
+        cannyMode = not cannyMode
 
     # toggle grayscale
     elif c == ord("g"):
-        if not grayScaleMode:
-            grayScaleMode = True
-        else:
-            grayScaleMode = False
-
-
-
+        grayScaleMode = not grayScaleMode
     # exit
     elif c == 27:
         break
+
 
     cv.imshow("Camera feed", output)
 
