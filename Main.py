@@ -9,11 +9,14 @@ cap = cv.VideoCapture(0)
 if not cap.isOpened():
     raise IOError("Cannot open webcam")
 
-
 grayScaleMode = False
 thresholdVal = 128
 maxVal = 255
 cannyMode = False
+
+
+def binarize():
+    pass
 
 
 while True:
@@ -49,7 +52,6 @@ while True:
     # exit
     elif c == 27:
         break
-
 
     cv.imshow("Camera feed", output)
 
