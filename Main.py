@@ -1,4 +1,5 @@
 import cv2 as cv
+import numpy as np
 from datetime import datetime  # used to name the images, that are captured
 
 saveDir = "./captures/"
@@ -13,29 +14,44 @@ grayScaleMode = False
 thresholdVal = 128
 maxVal = 255
 cannyMode = False
+binaryMode = False
+zeros = np.zeros((512, 512, 3), np.uint8)
 
 
-def binarize():
-    pass
+def mouseEvent(event, x, y, flags, param):
+    if event == cv.EVENT_MOUSEWHEEL:
+        print("wheel")
+
+
+#
+# def binarize():
+#     pass
 
 
 while True:
+
     now = datetime.now()
     currentTime = now.strftime("%H%M%S")
 
     ret, input = cap.read()
+    output = input
+    cv.namedWindow('test')
+    cv.setMouseCallback('test', mouseEvent)
 
+    # ************* MODES *************
     if cannyMode:
         # TODO upper and lower threshold
         output = cv.Canny(input, 1, 100)
+    elif grayScaleMode:
+        output = cv.cvtColor(input, cv.COLOR_BGR2GRAY)
+    # elif binaryMode:
+    #     output = cv.threshold(input, 50, 150, cv.THRESH_BINARY)
     else:
         output = input
-    if grayScaleMode:
-        output = cv.cvtColor(input, cv.COLOR_BGR2GRAY)
 
     c = cv.waitKey(1)
 
-    # **************** INPUTS ****************
+    # **************** KEYBOARD INPUTS ****************
     # capture image
     if c == ord('p'):
         file = "cap" + currentTime + ".jpg"
@@ -45,10 +61,12 @@ while True:
     # toggle canny mode
     elif c == ord("c"):
         cannyMode = not cannyMode
-
     # toggle grayscale
     elif c == ord("g"):
         grayScaleMode = not grayScaleMode
+    elif c == ord("b"):
+        binaryMode = not binaryMode
+        print("binaryMode: ", binaryMode)
     # exit
     elif c == 27:
         break
