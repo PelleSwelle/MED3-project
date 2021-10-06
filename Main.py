@@ -1,5 +1,9 @@
+import io
+
 import cv2 as cv
+
 import numpy as np
+import PreProcessing
 from datetime import datetime  # used to name the images, that are captured
 
 saveDir = "./captures/"
@@ -16,40 +20,31 @@ maxVal = 255
 cannyMode = False
 binaryMode = False
 zeros = np.zeros((512, 512, 3), np.uint8)
+subtractor = cv.createBackgroundSubtractorMOG2(history=100, varThreshold=50, detectShadows=True)
 
 
 def mouseEvent(event, x, y, flags, param):
     if event == cv.EVENT_MOUSEWHEEL:
         print("wheel")
-        
 
-
-#
-# def binarize():
-#     pass
 
 
 while True:
-
     now = datetime.now()
     currentTime = now.strftime("%H%M%S")
 
     ret, input = cap.read()
+    mask = subtractor.apply(input)
     output = input
-    # cv.namedWindow('test')
-    # cv.setMouseCallback('test', mouseEvent)
+
 
     # ************* MODES *************
     if cannyMode:
-        # TODO upper and lower threshold
         output = cv.Canny(input, 1, 100)
     elif grayScaleMode:
         output = cv.cvtColor(input, cv.COLOR_BGR2GRAY)
     elif binaryMode:
-        im_gray = cv.cvtColor(input, cv.COLOR_BGR2GRAY)
-
-        th, im_gray_th_otsu = cv.threshold(im_gray, 128, 192, cv.THRESH_OTSU)
-        output = im_gray_th_otsu
+        output = PreProcessing.removeBackground(input)
     else:
         output = input
 
@@ -61,7 +56,6 @@ while True:
         file = "cap" + currentTime + ".jpg"
         cv.imwrite(saveDir + file, output)
         print(file, " is stored in ", saveDir)
-
     # toggle canny mode
     elif c == ord("c"):
         cannyMode = not cannyMode
@@ -76,6 +70,7 @@ while True:
         break
 
     cv.imshow("Camera feed", output)
+    cv.imshow("masked", mask)
 
 cap.release()
 cv.destroyAllWindows()
