@@ -21,6 +21,7 @@ zeros = np.zeros((512, 512, 3), np.uint8)
 def mouseEvent(event, x, y, flags, param):
     if event == cv.EVENT_MOUSEWHEEL:
         print("wheel")
+        
 
 
 #
@@ -35,8 +36,8 @@ while True:
 
     ret, input = cap.read()
     output = input
-    cv.namedWindow('test')
-    cv.setMouseCallback('test', mouseEvent)
+    # cv.namedWindow('test')
+    # cv.setMouseCallback('test', mouseEvent)
 
     # ************* MODES *************
     if cannyMode:
@@ -44,8 +45,11 @@ while True:
         output = cv.Canny(input, 1, 100)
     elif grayScaleMode:
         output = cv.cvtColor(input, cv.COLOR_BGR2GRAY)
-    # elif binaryMode:
-    #     output = cv.threshold(input, 50, 150, cv.THRESH_BINARY)
+    elif binaryMode:
+        im_gray = cv.cvtColor(input, cv.COLOR_BGR2GRAY)
+
+        th, im_gray_th_otsu = cv.threshold(im_gray, 128, 192, cv.THRESH_OTSU)
+        output = im_gray_th_otsu
     else:
         output = input
 
