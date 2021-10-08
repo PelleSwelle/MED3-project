@@ -1,5 +1,10 @@
+import cv2
 import cv2 as cv
 from datetime import datetime # used to name the images, that are captured
+import numpy as np
+
+
+from IPython.utils import frame
 
 saveDir = "./captures/"
 
@@ -21,11 +26,11 @@ while True:
     currentTime = now.strftime("%H%M%S")
 
     ret, input = cap.read()
-    input = cv.flip(input, -1)
+    #input = cv.flip(input, -1)
 
     if cannyMode:
         # TODO upper and lower threshold
-        output = cv.Canny(input, 1, 100)
+        output = cv.Canny(input, 1, 300)
     else:
         output = input
     if grayScaleMode:
@@ -60,6 +65,7 @@ while True:
         break
 
     cv.imshow("Camera feed", output)
+
 
 cap.release()
 cv.destroyAllWindows()
