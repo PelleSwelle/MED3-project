@@ -20,18 +20,15 @@ def binarize(src):
     return otsuThresh
 
 def grayScale(src):
-    # load the pixel data from the image
-    pxls = src.load()
-    height, width = src.size
+    pxls = src.load() # load the pixel data from the image
+    height, width = src.size  # get the size of the image
 
-    # make a canvas to hold the new picture
-    img_grayscaled = Image.new(src.mode, src.size)
+    img_grayscaled = Image.new(src.mode, src.size)  # make a canvas to hold the new picture
 
     for row in range(0, height):
         for column in range(0, width):
-            # capture the color channels
-            red, blue, green = pxls[row, column]
-            avg = math.floor((red + blue + green) / 3)
+            red, blue, green = pxls[row, column] # capture the color channels
+            avg = math.floor((red + blue + green) / 3)  # grayscale image is when all three color values are the same
             # fill the canvas with the new values
             img_grayscaled.putpixel((row, column), (avg, avg, avg))
 
@@ -40,43 +37,21 @@ def grayScale(src):
 
 
 def blur_gaussian(src):
-    kernel = np.array([[1, 2, 1],
-                       [2, 4, 2],
-                       [1, 2, 1]])
-    output = copy(src)
-    # get pixel data
-    # pxls = src.load()
-
-    # Creating coordinates of the pixel (x,y)
-    # coordinates = x, y = 40, 60
-
-    # getting pixel value using getpixel() method
-    # print(pxls.getpixel(coordinates))
-
+    kernel = np.array([[1,  4,  6,  4, 1],
+                       [4, 16, 26, 16, 4],
+                       [6, 26, 43, 26, 6],
+                       [4, 16, 26, 16, 4],
+                       [1,  4,  6,  4, 1]])
+    gaussian3x3 = copy(src)
     kernelSum = np.sum(kernel)
-    matrix = np.zeros(src.shape)
-    mat = np.matrix(matrix)
 
-    normalized = 0
-    print("kernelSum: ", kernelSum)
+    for y in range(2, src.shape[0] - 2):
+        for x in range(2, src.shape[1] - 2):
+            for c in range(src.shape[2]):
+                sum = 0
+                for ky in range(3):
+                    for kx in range(3):
+                        sum += src[y + ky - 1, x + kx - 1, c] * kernel[ky, kx]
+                gaussian3x3[y, x, c] = sum / kernelSum
 
-    for _y in range(1, src.shape[0] - 1):
-        for _x in range(1, src.shape[1] - 1):  # for every pixel
-            inputSum = 0
-            # for value in range(1):
-            # inputSum += src[_y + color_y - 1, _x + color_x - 1] * kernel[color_y, color_x]
-
-            mat[_y, _x] = inputSum/kernelSum
-            print(mat[_y, _x])
-
-
-                # for color_x in range(1):
-                #     # normalized += inputSum / kernelSum
-            output[_y, _x] = inputSum / kernelSum
-
-    # write matrix to file
-    with open('matrix.txt') as file:
-        for line in mat:
-            # np.savetxt(file, line, fmt='%.2f')
-            pass
-    return output
+    return gaussian3x3

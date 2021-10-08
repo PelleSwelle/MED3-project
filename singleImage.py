@@ -5,27 +5,34 @@ import math
 import numpy as np
 from copy import copy
 
-imgPath = "./reference1.jpg"
-scaleFactor = 500
+referenceDir = "./reference/"
 
-initImg = cv.imread(imgPath)
-pilImg = Image.open(imgPath)
+# read reference images using pillow
+SIGN_A = Image.open(referenceDir + "A1008.jpg")
+SIGN_F = Image.open(referenceDir + "F1001.jpg")
+SIGN_P = Image.open(referenceDir + "P1014.jpg")
 
-img = cv.resize(initImg, (initImg.shape[1] - scaleFactor, initImg.shape[0] - scaleFactor))
-cv.imshow("reference photo", img)
+# cv.imshow("reference A", np.array(a_sign))
 
-img_Grayscale = PreProcessing.grayScale(pilImg)
-# img_gaussianBlur = PreProcessing.blur_gaussian(img_Grayscale)
-
-img_canny = cv.Canny(img_Grayscale, 100, 200)  # TODO make our own edge detection algorithm
-
-th, img_thresholded = cv.threshold(img_Grayscale, 128, 129, cv.THRESH_BINARY)  # TODO make own thresholder
+sign_A_grayscale = PreProcessing.grayScale(SIGN_A)
+sign_A_blurred = PreProcessing.blur_gaussian(np.array(SIGN_A))
 
 
+img_canny = cv.Canny(sign_A_grayscale, 100, 200)  # TODO make our own edge detection algorithm
 
-cv.imshow("img_Grayscale", img_Grayscale)
-# cv.imshow("img_thresholded", img_canny)
-# cv.imshow("gaussian blur", img_gaussianBlur)
+th, img_thresholded = cv.threshold(sign_A_grayscale, 128, 129, cv.THRESH_BINARY)  # TODO make own thresholder
+
+# ******************* displaying windows *******************
+inputWindow_name = "in_A"
+outputWindow_name = "out_A"
+cv.namedWindow(inputWindow_name)
+cv.namedWindow(outputWindow_name)
+
+cv.imshow(inputWindow_name, np.array(SIGN_A))
+# cv.imshow(outputWindow_name, np.array(sign_A_grayscale))
+cv.imshow(outputWindow_name, np.array(sign_A_blurred))
+
+cv.imshow("default gaus", cv.GaussianBlur(np.array(SIGN_A), (7,7), 0))
+
 cv.waitKey(0)
-
 cv.destroyAllWindows()
