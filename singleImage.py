@@ -15,7 +15,8 @@ SIGN_P = Image.open(referenceDir + "P1014.jpg")
 # cv.imshow("reference A", np.array(a_sign))
 
 sign_A_grayscale = PreProcessing.grayScale(SIGN_A)
-sign_A_blurred = PreProcessing.blur_gaussian(np.array(SIGN_A))
+
+sign_A_blurred = PreProcessing.blur_gaussian(np.array(sign_A_grayscale), 5)
 
 
 img_canny = cv.Canny(sign_A_grayscale, 100, 200)  # TODO make our own edge detection algorithm
@@ -28,11 +29,11 @@ outputWindow_name = "out_A"
 cv.namedWindow(inputWindow_name)
 cv.namedWindow(outputWindow_name)
 
-cv.imshow(inputWindow_name, np.array(SIGN_A))
+cv.imshow(inputWindow_name, np.array(sign_A_grayscale))
 # cv.imshow(outputWindow_name, np.array(sign_A_grayscale))
 cv.imshow(outputWindow_name, np.array(sign_A_blurred))
 
-cv.imshow("default gaus", cv.GaussianBlur(np.array(SIGN_A), (7,7), 0))
+cv.imshow("default gaus", cv.GaussianBlur(np.array(sign_A_grayscale), (5,5), 0))
 
 cv.waitKey(0)
 cv.destroyAllWindows()

@@ -20,38 +20,57 @@ def binarize(src):
     return otsuThresh
 
 def grayScale(src):
-    pxls = src.load() # load the pixel data from the image
+    pxls = src.load()  # load the pixel data from the image
     height, width = src.size  # get the size of the image
 
     img_grayscaled = Image.new(src.mode, src.size)  # make a canvas to hold the new picture
 
     for row in range(0, height):
         for column in range(0, width):
-            red, blue, green = pxls[row, column] # capture the color channels
+            red, blue, green = pxls[row, column]  # capture the color channels
             avg = math.floor((red + blue + green) / 3)  # grayscale image is when all three color values are the same
             # fill the canvas with the new values
             img_grayscaled.putpixel((row, column), (avg, avg, avg))
+    #       TODO this should convert to a single channel (from black to white)
 
     result = np.array(img_grayscaled)
     return result
 
 
-def blur_gaussian(src):
-    kernel = np.array([[1,  4,  6,  4, 1],
-                       [4, 16, 26, 16, 4],
-                       [6, 26, 43, 26, 6],
-                       [4, 16, 26, 16, 4],
-                       [1,  4,  6,  4, 1]])
-    gaussian3x3 = copy(src)
+def blur_gaussian(_src, _kernel):
+    if _kernel == 3:
+        kernel = np.array([[1, 2, 1],
+                              [2, 4, 2],
+                              [1, 2, 1]])
+    elif _kernel == 5:
+        kernel = np.array([[1,  4,  6,  4, 1],
+                           [4, 16, 26, 16, 4],
+                           [6, 26, 43, 26, 6],
+                           [4, 16, 26, 16, 4],
+                           [1,  4,  6,  4, 1]])
+    # check color channels
+    imageArray = copy(_src)
+    image = Image.fromarray(_src)
+    noOfChannels = len(image.split())
+
+    if noOfChannels == 3:
+        singleChannel = image.convert('L')  # convert to single channel
+        image = singleChannel
+
+        print("converted from ", noOfChannels, " to ", len(singleChannel.split()), " channels")
+    elif noOfChannels == 1:
+        print("the image has 1 color channel")
+
+    # blurred_output = copy(_src)
     kernelSum = np.sum(kernel)
 
-    for y in range(2, src.shape[0] - 2):
-        for x in range(2, src.shape[1] - 2):
-            for c in range(src.shape[2]):
+    for y in range(2, imageArray.shape[0] - 2):
+        for x in range(2, imageArray.shape[1] - 2):
+            for c in range(imageArray.shape[2]):
                 sum = 0
-                for ky in range(3):
-                    for kx in range(3):
-                        sum += src[y + ky - 1, x + kx - 1, c] * kernel[ky, kx]
-                gaussian3x3[y, x, c] = sum / kernelSum
+                for kernel_x in range(5):
+                    for kernel_y in range(5):
+                        sum += imageArray[y + kernel_x - 2, x + kernel_y - 2, c] * kernel[kernel_x, kernel_y]
+                imageArray[y, x, c] = sum / kernelSum
 
-    return gaussian3x3
+    return imageArray
