@@ -56,12 +56,8 @@ def blur_gaussian(_src, _kernel):
     if noOfChannels == 3:
         singleChannel = image.convert('L')  # convert to single channel
         image = singleChannel
+        print("converted from ", noOfChannels, " to ", len(singleChannel.split()), " channels before applying gaussian blur")
 
-        print("converted from ", noOfChannels, " to ", len(singleChannel.split()), " channels")
-    elif noOfChannels == 1:
-        print("the image has 1 color channel")
-
-    # blurred_output = copy(_src)
     kernelSum = np.sum(kernel)
 
     for y in range(2, imageArray.shape[0] - 2):

@@ -13,34 +13,46 @@ SIGN_A = Image.open(referenceDir + "A1008.jpg")
 SIGN_F = Image.open(referenceDir + "F1001.jpg")
 SIGN_P = Image.open(referenceDir + "P1014.jpg")
 
-parser = argparse.ArgumentParser()
-parser.add_argument("echo")
+parser = argparse.ArgumentParser()  # argument parser
 
+# parser.add_argument("square", help="display a square of a given number", type=int)
+parser.add_argument("handpose", help="set input image as A, F or P")
 args = parser.parse_args()
-print(args.echo)
 
-# cv.imshow("reference A", np.array(a_sign))
+image = SIGN_A
 
-sign_A_grayscale = PreProcessing.grayScale(SIGN_A)
+if args.handpose == "a":
+    print("processing sign for A")
+    image = SIGN_A
+elif args.handpose == "f":
+    print("processing sign for F")
+    image = SIGN_F
+elif args.handpose == "p":
+    print("processing sign for P")
+    image = SIGN_P
 
-sign_A_blurred = PreProcessing.blur_gaussian(np.array(sign_A_grayscale), 5)
+input_grayscaled = PreProcessing.grayScale(image)
 
+input_blurred = PreProcessing.blur_gaussian(np.array(input_grayscaled), 5)
 
-img_canny = cv.Canny(sign_A_grayscale, 100, 200)  # TODO make our own edge detection algorithm
+input_canny = cv.Canny(input_grayscaled, 100, 200)  # TODO make our own edge detection algorithm
 
-th, img_thresholded = cv.threshold(sign_A_grayscale, 128, 129, cv.THRESH_BINARY)  # TODO make own thresholder
+th, img_thresholded = cv.threshold(input_grayscaled, 128, 129, cv.THRESH_BINARY)  # TODO make own thresholder
 
 # ******************* displaying windows *******************
-inputWindow_name = "in_A"
-outputWindow_name = "out_A"
+inputWindow_name = "in"
+outputWindow_name = "out"
+referenceWindow_name = "reference"
 cv.namedWindow(inputWindow_name)
 cv.namedWindow(outputWindow_name)
+cv.namedWindow(referenceWindow_name)
 
-cv.imshow(inputWindow_name, np.array(sign_A_grayscale))
-# cv.imshow(outputWindow_name, np.array(sign_A_grayscale))
-cv.imshow(outputWindow_name, np.array(sign_A_blurred))
+cv.imshow(inputWindow_name, np.array(input_grayscaled))
+cv.imshow(outputWindow_name, np.array(input_blurred))
+cv.imshow(referenceWindow_name, np.array((img_thresholded)))
 
-cv.imshow("default gaus", cv.GaussianBlur(np.array(sign_A_grayscale), (5,5), 0))
+cv.imshow("default gaus", cv.GaussianBlur(np.array(input_grayscaled), (5, 5), 0))
+
 
 cv.waitKey(0)
 cv.destroyAllWindows()
