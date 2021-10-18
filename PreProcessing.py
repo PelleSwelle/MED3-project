@@ -36,7 +36,6 @@ def grayScale(src):
     result = np.array(img_grayscaled)
     return result
 
-
 def blur_gaussian(_src, _kernel):
     if _kernel == 3:
         kernel = np.array([[1, 2, 1],
@@ -70,3 +69,57 @@ def blur_gaussian(_src, _kernel):
                 imageArray[y, x, c] = sum / kernelSum
 
     return imageArray
+
+def threshold_otsu(image, nbins = 0.1):
+    # validate grayscale
+    if len(image.shape) == 1:
+        print("threshold algorithm received a one-channel image")
+        return
+
+    if np.min(image) == np.max(image):
+        print("threshold algorithm received a multi-colored image")
+        return
+
+    allColors = image.flatten()
+    total_weight = len(allColors)
+    leastVariance = -1
+    leastVarianceTreshold = -1
+
+    # create an array of all possible threshold values which we want to loop through
+    color_thresholds = np.arange(np.min(image) + nbins, np.max(image) - nbins, nbins)
+
+    # loop through the thresholds to find the one with the least within class variance
+    for color_threshold in color_thresholds:
+        bg_pixels = allColors[allColors < color_threshold]
+        weight_bg = len(bg_pixels) / total_weight
+        variance_bg = np.var(bg_pixels)
+
+        fg_pixels = allColors[allColors >= color_threshold]
+        weight_fg = len(fg_pixels) / total_weight
+        variance_fg = np.var(fg_pixels)
+
+        within_class_variance = weight_fg * variance_fg + weight_bg * variance_bg
+        if least_variance == -1 or least_variance > within_class_variance:
+            least_variance = within_class_variance
+            least_variance_threshold = color_threshold
+        print("trace:", within_class_variance, color_threshold)
+
+    return least_variance_threshold
+
+def removeOtherStuff(src):
+    # TODO check format of image
+    img = Image.fromarray(src)
+    pxls = img.load()  # load the pixel data from the image
+    height, width = img.size  # get the size of the image
+
+    img_isolated = Image.new(img.mode, img.size)  # make a canvas to hold the new picture
+
+    for row in range(0, height):
+        for column in range(0, width):
+            if img.getPixel((row, column) == 255):
+                print("demo")
+                # img_isolated.putpixel((row, column), 0)
+
+
+    result = np.array(img_isolated)
+    return result

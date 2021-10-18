@@ -31,27 +31,47 @@ elif args.handpose == "p":
     print("processing sign for P")
     image = SIGN_P
 
-input_grayscaled = PreProcessing.grayScale(image)
+img_grayscaled = PreProcessing.grayScale(image)
 
-input_blurred = PreProcessing.blur_gaussian(np.array(input_grayscaled), 5)
+img_blurred = PreProcessing.blur_gaussian(np.array(img_grayscaled), 5)
 
-input_canny = cv.Canny(input_grayscaled, 100, 200)  # TODO make our own edge detection algorithm
+# th = threshold value, img_thresholded is the image as an array
+th, img_thresholded = cv.threshold(img_grayscaled, 120, 255, cv.THRESH_BINARY)  # TODO make own thresholder
+img_canny = cv.Canny(img_thresholded, 100, 200)  # TODO make our own edge detection algorithm
 
-th, img_thresholded = cv.threshold(input_grayscaled, 128, 129, cv.THRESH_BINARY)  # TODO make own thresholder
+img_isolated = PreProcessing.removeOtherStuff(img_canny)
 
-# ******************* displaying windows *******************
-inputWindow_name = "in"
-outputWindow_name = "out"
-referenceWindow_name = "reference"
-cv.namedWindow(inputWindow_name)
-cv.namedWindow(outputWindow_name)
-cv.namedWindow(referenceWindow_name)
+cv.imshow("isolated", img_isolated)
 
-cv.imshow(inputWindow_name, np.array(input_grayscaled))
-cv.imshow(outputWindow_name, np.array(input_blurred))
-cv.imshow(referenceWindow_name, np.array((img_thresholded)))
+# find out which shape is hand
+# if shape not hand, remove
 
-cv.imshow("default gaus", cv.GaussianBlur(np.array(input_grayscaled), (5, 5), 0))
+# ************************************** DISPLAYING WINDOWS **************************************
+step_one = image
+step_two = img_blurred
+step_three = img_thresholded
+step_four = img_canny
+# *******************         STEP ONE         *******************
+stepOneTitle = str(step_one)
+cv.namedWindow(stepOneTitle)
+cv.imshow(stepOneTitle, np.array(step_one))
+
+# *******************         STEP TWO        *******************
+stepTwoTitle = str(step_two)
+cv.namedWindow(stepTwoTitle)
+cv.imshow(stepTwoTitle, np.array(step_two))
+
+# *******************      STEP THREE     *******************
+stepThreeTitle = str(step_three)
+cv.namedWindow(stepThreeTitle)
+cv.imshow(stepThreeTitle, np.array((step_three)))
+
+# *******************      STEP FOUR     *******************
+stepFourTitle = str(step_four)
+cv.namedWindow(stepFourTitle)
+cv.imshow(stepFourTitle, np.array((step_four)))
+
+# cv.imshow("default gaus", cv.GaussianBlur(np.array(input_grayscaled), (5, 5), 0))
 
 
 cv.waitKey(0)
