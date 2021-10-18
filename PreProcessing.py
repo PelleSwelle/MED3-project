@@ -2,24 +2,14 @@ import cv2 as cv
 import numpy as np
 from copy import copy
 from PIL import Image
+import Directories
 import math
+
 
 detector = cv.SimpleBlobDetector_create()
 
-
-def binarize(src):
-    grayScaleImg = cv.cvtColor(src, cv.COLOR_BGR2GRAY)
-
-    th, otsuThresh = cv.threshold(grayScaleImg, 128, 192, cv.THRESH_OTSU)
-    # otsuThreshInverted = cv.bitwise_not(otsuThresh)
-    # keypoints = detector.detect(otsuThresh)
-
-    # im_with_keypoints = cv.drawKeypoints(otsuThresh, keypoints, np.array([]), (0, 0, 255),
-    # cv.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
-
-    return otsuThresh
-
-def grayScale(src):
+def grayScale(src, letter):
+    print("grayScaling...")
     pxls = src.load()  # load the pixel data from the image
     height, width = src.size  # get the size of the image
 
@@ -33,10 +23,15 @@ def grayScale(src):
             img_grayscaled.putpixel((row, column), (avg, avg, avg))
     #       TODO this should convert to a single channel (from black to white)
 
-    result = np.array(img_grayscaled)
-    return result
+    result_pillow = img_grayscaled
+    result_cv = np.array(img_grayscaled)
+    Directories.save(result_cv, letter, "grayscaled")
+    print("grayscaling has finished")
+    # cv.imshow("grayscaled", result_cv)
+    return result_cv
 
-def blur_gaussian(_src, _kernel):
+def blur_gaussian(_src, letter, _kernel):
+    print("initiating gaussian blur...")
     if _kernel == 3:
         kernel = np.array([[1, 2, 1],
                               [2, 4, 2],
@@ -67,8 +62,22 @@ def blur_gaussian(_src, _kernel):
                     for kernel_y in range(5):
                         sum += imageArray[y + kernel_x - 2, x + kernel_y - 2, c] * kernel[kernel_x, kernel_y]
                 imageArray[y, x, c] = sum / kernelSum
-
+    print("finished gausian blur!")
+    Directories.save(imageArray, letter, "Blurred")
     return imageArray
+
+def binarize(src):
+    print("binarizing image using otsu method...")
+    grayScaleImg = cv.cvtColor(src, cv.COLOR_BGR2GRAY)
+
+    th, otsuThresh = cv.threshold(grayScaleImg, 128, 192, cv.THRESH_OTSU)
+    # otsuThreshInverted = cv.bitwise_not(otsuThresh)
+    # keypoints = detector.detect(otsuThresh)
+
+    # im_with_keypoints = cv.drawKeypoints(otsuThresh, keypoints, np.array([]), (0, 0, 255),
+    # cv.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+    print("finished binarizing")
+    return otsuThresh
 
 def threshold_otsu(image, nbins = 0.1):
     # validate grayscale
@@ -108,18 +117,40 @@ def threshold_otsu(image, nbins = 0.1):
 
 def removeOtherStuff(src):
     # TODO check format of image
+    print("removing stuff that is not hand from the image...")
     img = Image.fromarray(src)
     pxls = img.load()  # load the pixel data from the image
     height, width = img.size  # get the size of the image
 
     img_isolated = Image.new(img.mode, img.size)  # make a canvas to hold the new picture
+    print(img_isolated.size)
 
     for row in range(0, height):
         for column in range(0, width):
-            if img.getPixel((row, column) == 255):
-                print("demo")
-                # img_isolated.putpixel((row, column), 0)
-
+            if (pxls[row, column]) == 255:
+                img_isolated.putpixel((row, column), 100)
 
     result = np.array(img_isolated)
+    print("removed stuff")
     return result
+
+def detectShapes(src):
+    print("detecting shapes...")
+    img = copy(src)
+    # Finding Contours
+    # Use a copy of the image e.g. edged.copy()
+    # since findContours alters the image
+    contours, hierarchy = cv.findContours(img, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE)
+
+    cv.imshow('Canny Edges After Contouring', img)
+    cv.waitKey(0)
+
+    print("Number of Contours found = " + str(len(contours)))
+
+    # Draw all contours
+    # -1 signifies drawing all contours
+    # cv.drawContours(img, contours, -1, (0, 255, 0), 3)
+    cv.drawContours(img, contours, -1, 255, 6)
+    print("detected shapes!")
+    return img
+    # cv.imshow('shapes', img)
