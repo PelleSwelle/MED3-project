@@ -38,17 +38,22 @@ class CannyEdgeDetector:
         return g
 
     @staticmethod
-    def sobel_filters(img):
-        kx = np.array([[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]], np.float32)
-        ky = np.array([[1, 2, 1], [0, 0, 0], [-1, -2, -1]], np.float32)
+    def sobel_filters(_img):
+        kernelX = np.array([[-1, 0, 1],
+                            [-2, 0, 2],
+                            [-1, 0, 1]], np.float32)
+        kernelY = np.array([[1, 2, 1],
+                            [0, 0, 0],
+                            [-1, -2, -1]], np.float32)
 
-        ix = ndimage.filters.convolve(img, kx)
-        iy = ndimage.filters.convolve(img, ky)
 
-        g = np.hypot(ix, iy)
-        g = g / g.max() * 255
-        theta = np.arctan2(iy, ix)
-        return g, theta
+        intensityX = ndimage.filters.convolve(_img, kernelX)
+        intensityY = ndimage.filters.convolve(_img, kernelY)
+
+        magnitude = np.hypot(intensityX, intensityY)
+        magnitude = magnitude / magnitude.max() * 255
+        slope = np.arctan2(intensityY, intensityX)
+        return magnitude, slope
 
     @staticmethod
     def non_max_suppression(img, d):
