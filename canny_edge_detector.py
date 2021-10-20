@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 class CannyEdgeDetector:
     def __init__(self, img, sigma=1, kernel_size=5, weak_pixel=75, strong_pixel=255, lowthreshold=0.05,
                  highthreshold=0.15):
-        #self.img = img
+        # self.img = img
         self.img = plt.imread("reference/A1008.jpg")
         self.img_final = []
         self.img_smoothed = None
