@@ -46,7 +46,6 @@ class CannyEdgeDetector:
                             [0, 0, 0],
                             [-1, -2, -1]], np.float32)
 
-
         intensityX = ndimage.filters.convolve(_img, kernelX)
         intensityY = ndimage.filters.convolve(_img, kernelY)
 
