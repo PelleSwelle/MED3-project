@@ -1,7 +1,7 @@
-# import numpy as np
-# import skimage
-# import utils
-# import scipy.misc as sm
+import numpy as np
+import skimage
+import utils
+import scipy.misc as sm
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import os
@@ -19,13 +19,13 @@ def load_data(dir_name='reference'):
     Load images from the "reference" directory
     Images are in JPG and we convert it to gray scale images
     """
-    img = []
+    imgs = []
     for filename in os.listdir(dir_name):
         if os.path.isfile(dir_name + '/' + filename):
             img = mpimg.imread(dir_name + '/' + filename)
             img = rgb2gray(img)
-            img.append(img)
-    return img
+            imgs.append(img)
+    return imgs
 
 
 def visualize(img, format=None):

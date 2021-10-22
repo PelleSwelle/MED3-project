@@ -38,12 +38,12 @@ img_blurred = PreProcessing.blur_gaussian(np.array(img_grayscaled), 5)
 
 # th = threshold value, img_thresholded is the image as an array
 th, img_thresholded = cv.threshold(img_grayscaled, 120, 255, cv.THRESH_BINARY)  # TODO make own thresholder
-#img_canny = cv.Canny(img_thresholded, 100, 200)  # TODO make our own edge detection algorithm
+img_canny = cv.Canny(img_thresholded, 100, 200)  # TODO make our own edge detection algorithm
 #img_isolated = PreProcessing.removeOtherStuff(img_canny)
 
 cannied = canny_edge_detector.CannyEdgeDetector
 
-cv.imshow("cannied", np.array(cannied))
+# cv.imshow("cannied", np.array(cannied))
 
 #cv.imshow("isolated", img_isolated)
 
