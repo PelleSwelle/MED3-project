@@ -39,9 +39,9 @@ img_blurred = PreProcessing.blur_gaussian(np.array(img_grayscaled), 5)
 th, img_thresholded = cv.threshold(img_grayscaled, 120, 255, cv.THRESH_BINARY)  # TODO make own thresholder
 img_canny = cv.Canny(img_thresholded, 100, 200)  # TODO make our own edge detection algorithm
 
-img_isolated = PreProcessing.removeOtherStuff(img_canny)
-
-cv.imshow("isolated", img_isolated)
+# img_isolated = PreProcessing.removeOtherStuff(img_canny)
+#
+# cv.imshow("isolated", img_isolated)
 
 # find out which shape is hand
 # if shape not hand, remove
