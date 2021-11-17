@@ -2,9 +2,8 @@ import cv2 as cv
 import argparse
 import PreProcessing
 from PIL import Image
-import math
 import numpy as np
-from copy import copy
+
 
 referenceDir = "./reference/"
 
@@ -37,7 +36,14 @@ img_blurred = PreProcessing.blur_gaussian(np.array(img_grayscaled), 5)
 
 # th = threshold value, img_thresholded is the image as an array
 th, img_thresholded = cv.threshold(img_grayscaled, 120, 255, cv.THRESH_BINARY)  # TODO make own thresholder
-img_canny = cv.Canny(img_thresholded, 100, 200)  # TODO make our own edge detection algorithm
+
+# img_canny = cv.Canny(img_thresholded, 100, 200)  # TODO make our own edge detection algorithm
+
+img_blobDetected = PreProcessing.blobDetect(np.array(img_thresholded))
+
+
+
+
 
 # img_isolated = PreProcessing.removeOtherStuff(img_canny)
 #
@@ -50,7 +56,8 @@ img_canny = cv.Canny(img_thresholded, 100, 200)  # TODO make our own edge detect
 step_one = image
 step_two = img_blurred
 step_three = img_thresholded
-step_four = img_canny
+# step_four = img_canny
+step_five = img_blobDetected
 # *******************         STEP ONE         *******************
 stepOneTitle = str(step_one)
 cv.namedWindow(stepOneTitle)
@@ -64,12 +71,18 @@ cv.imshow(stepTwoTitle, np.array(step_two))
 # *******************      STEP THREE     *******************
 stepThreeTitle = str(step_three)
 cv.namedWindow(stepThreeTitle)
-cv.imshow(stepThreeTitle, np.array((step_three)))
+cv.imshow(stepThreeTitle, np.array(step_three))
 
 # *******************      STEP FOUR     *******************
-stepFourTitle = str(step_four)
-cv.namedWindow(stepFourTitle)
-cv.imshow(stepFourTitle, np.array((step_four)))
+# stepFourTitle = str(step_four)
+# cv.namedWindow(stepFourTitle)
+# cv.imshow(stepFourTitle, np.array(step_four))
+
+# *******************      STEP FIVE     *******************
+stepFiveTitle = str(step_five)
+cv.namedWindow(stepFiveTitle)
+cv.imshow(stepFiveTitle, np.array(step_three))
+
 
 # cv.imshow("default gaus", cv.GaussianBlur(np.array(input_grayscaled), (5, 5), 0))
 
