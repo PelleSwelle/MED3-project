@@ -46,32 +46,38 @@ img_canny = cv.Canny(img_thresholded, 100, 200)  # TODO make our own edge detect
 # find out which shape is hand
 # if shape not hand, remove
 
+
 # ************************************** DISPLAYING WINDOWS **************************************
 step_one = image
 step_two = img_blurred
 step_three = img_thresholded
+cv.imwrite("thresholded.jpg", img_thresholded)
 step_four = img_canny
 # *******************         STEP ONE         *******************
 stepOneTitle = str(step_one)
 cv.namedWindow(stepOneTitle)
 cv.imshow(stepOneTitle, np.array(step_one))
 
+
 # *******************         STEP TWO        *******************
 stepTwoTitle = str(step_two)
 cv.namedWindow(stepTwoTitle)
-cv.imshow(stepTwoTitle, np.array(step_two))
+# cv.imwrite("img_blurred.jpg", step_two)
 
 # *******************      STEP THREE     *******************
 stepThreeTitle = str(step_three)
 cv.namedWindow(stepThreeTitle)
-cv.imshow(stepThreeTitle, np.array((step_three)))
+# cv.imshow(stepThreeTitle, np.array((step_three)))
 
 # *******************      STEP FOUR     *******************
 stepFourTitle = str(step_four)
 cv.namedWindow(stepFourTitle)
-cv.imshow(stepFourTitle, np.array((step_four)))
+# cv.imshow(stepFourTitle, np.array((step_four)))
+#
+# stepFiveTitle = str(step_five)
+# cv.namedWindow(stepFiveTitle)
+# cv.imshow(stepFiveTitle, np.array(step_five))
 
-# cv.imshow("default gaus", cv.GaussianBlur(np.array(input_grayscaled), (5, 5), 0))
 
 
 cv.waitKey(0)
