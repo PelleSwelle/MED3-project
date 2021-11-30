@@ -58,7 +58,7 @@ def downSize(array: np.ndarray, scale: float):
     return Image.fromarray(scaled_f_down)
 
 
-def blur_gaussian(array: np.ndarray):
+def old_blur_gaussian(array: np.ndarray):
 
     kernel = np.array([[1, 4, 6, 4, 1],
                        [4, 16, 26, 16, 4],

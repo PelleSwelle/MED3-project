@@ -1,9 +1,13 @@
 from os import name
-import Hand
+
+from numpy.core.overrides import verify_matching_signatures
+from Hand import Finger, FingerState, Hand
 import cv2 as cv
 import numpy as np
-import Image
+from Image import Image, ImageVersion
 import Colors
+from PreProcessor import *
+from Extractor import Extractor
 
 images = []
 
@@ -20,73 +24,89 @@ def get_version(version: Image.ImageVersion):
     return image_to_return
 
 def main():
+    # TODO I think I might be loading the image both as a separate image and through the hand class
 
     # load an image as the original image
-    original_image = Image.Image(
+    original_image = Image(
         name="original image", 
         img_array=cv.imread("reference/wSign2.jpg"), 
-        version=Image.ImageVersion.ORIGINAL
+        version=ImageVersion.ORIGINAL
     )
 
     images.append(original_image)
 
     # instantiate a hand from that image
-    hand = Hand.Hand(original_image)
+    hand = Hand(original_image)
 
     hand.print_finger_states()
 
-    preprocesser = Hand.PreProcessor(hand)
-    
+    preprocesser = PreProcessor(hand)
+    extractor = Extractor()
+
     # PRODUCING THE IMAGES
-    grayscaled_image = Image.Image(
+    blurred_image = Image(
+        name="blurred with gaussian blur",
+        img_array=(
+            PreProcessor.blur_gaussian(
+                image=get_version(
+                    version=ImageVersion.ORIGINAL
+                )
+            )
+        ),
+        version=ImageVersion.BLURRED
+    )
+    images.append(blurred_image)
+
+    grayscaled_image = Image(
         name="grayscaled image",
-        img_array=preprocesser.gray_scale(get_version(Image.ImageVersion.ORIGINAL)),
-        version=Image.ImageVersion.GRAYSCALED
+        img_array=preprocesser.gray_scale(
+            image=get_version(
+                version=ImageVersion.BLURRED)),
+        version=ImageVersion.GRAYSCALED
     )
     # TODO should add to images atomatically when instantiating
     images.append(grayscaled_image)
 
-    binarized_image = Image.Image(
+    binarized_image = Image(
         name="binarized image",
         img_array=preprocesser.binarize(
-            get_version(
-                Image.ImageVersion.GRAYSCALED
-            )
+            image=get_version(
+                version=ImageVersion.GRAYSCALED
+            ),
+            threshold=240
         ),
-        version=Image.ImageVersion.BINARIZED 
+        version=ImageVersion.BINARIZED 
     )
     images.append(binarized_image)
 
-    hand.contours = preprocesser.get_contours(
-        get_version(Image.ImageVersion.BINARIZED)
+    hand.contours = extractor.get_contours(
+        get_version(ImageVersion.BINARIZED)
     )
     
-    contoured_image = Image.Image(
+    contoured_image = Image(
         name="contoured image",
-        img_array=preprocesser.contour(
+        # pretty sure we can grab the contours from jus above
+        img_array=extractor.contour(
             get_version(
-                Image.ImageVersion.BINARIZED
+                ImageVersion.BINARIZED
             )
         ),
-        version=Image.ImageVersion.CONTOURED
+        version=ImageVersion.CONTOURED
     )
     images.append(contoured_image)
     print_images()
 
-
-    # convex_hull_image = Image.Image(
-    #     name="image with convex hull",
+    convex_hull_image = Image(
+        name="image with convex hull",
         
-    #     img_array=preprocesser.convex_hull(
-    #         contours=preprocesser.get_contours(
-    #             image=get_version(
-    #                 version=Image.ImageVersion.BINARIZED
-    #             )
-    #         )[0]
-    #     ),
-    #     version=Image.ImageVersion.WITH_HULL
-    # )
-    # images.append(convex_hull_image)
+        img_array=extractor.convex_hull(
+            image=get_version(
+                version=ImageVersion.BINARIZED
+            )
+        ),
+        version=ImageVersion.WITH_HULL
+    )
+    images.append(convex_hull_image)
     
     #showing all the current versions
     for image in images:

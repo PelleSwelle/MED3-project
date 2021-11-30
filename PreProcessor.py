@@ -6,34 +6,44 @@ from copy import copy
 from PIL import Image
 from PIL import ImageDraw
 from numpy.lib.histograms import _histogram_bin_edges_dispatcher
-import pandas as pd
 import math
-from Hand import Hand
-import PreProcessing
-import Extraction
 import Colors
+from Hand import Hand
+from Image import Image
 
 class PreProcessor:
-    array: np.array
-    image: Image.Image
-
-    canvas: np.array
 
     def __init__(self, hand: Hand) -> None:
-        self.array = Hand.extraction_image
-        self.image = Image.fromarray(self.array)
-        self.canvas = np.zeros(self.array)
+        self.processing_image = hand.extraction_image.img_array
+        self.canvas = np.zeros((self.processing_image.shape[0], self.processing_image.shape[1]))
     
-    def gray_scale(self):
-        pxls = self.image  # load the pixel data from the image
-        height, width = self.image.size  # get the size of the image
 
-        for row in range(0, height):
-            for column in range(0, width):
-                red_channel, blue_channel, green_channel = pxls[row, column]  # capture the color channels
-                avg = math.floor((red_channel + blue_channel + green_channel) / 3)  # grayscale image is when all three color values are the same
-                # fill the canvas with the new values
-                self.canvas.putpixel((row, column), (avg, avg, avg))
-        #       TODO this should convert to a single channel (from black to white)
-
+    def gray_scale(self, image: Image):
+        """Method for grayscaling an image. Returns the grayscaled image"""
+        self.canvas = cv.cvtColor(image.img_array, cv.COLOR_BGR2GRAY)
+        cv.imshow("grayscaled", self.canvas)
         return self.canvas
+
+
+    def blur_gaussian(self, image: Image):
+        output_image = cv.GaussianBlur(
+            image.img_array, 
+            [7, 7], cv.BORDER_DEFAULT)
+        cv.imshow("from gaussian blur", output_image)
+        return output_image
+
+
+    # TODO this is used to calculate the correct threshold for the otsu algorithm
+    # def calculate_threshold():
+        # https://learnopencv.com/otsu-thresholding-with-opencv/
+
+
+    def binarize(self, image: Image, threshold: int):
+        th, thresh = cv.threshold(
+            src=image.img_array, 
+            thresh=threshold, 
+            maxval=255, 
+            type=cv.THRESH_BINARY
+        )
+        inverted = cv.bitwise_not(thresh)
+        return inverted

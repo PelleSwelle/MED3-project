@@ -173,11 +173,10 @@ edged = Image.fromarray(cv.Canny(np.array(whiteHand), 30, 200))
 
 contours, hierarchy = cv.findContours(np.array(whiteHand), cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
 contours = max(contours, key=lambda x: cv.contourArea(x))
-cv.drawContours(np.array(originalImg), [contours], -1, 100, 2)
-cv.imshow("contours", np.array(originalImg))
+
 
 cv.imshow("edged", np.array(edged))
-hull = cv.convexHull(np.array(edged))
+
 
 whitePixels = getAllWhitePixels(edged)
 # get the coordinates of the center of the hand and draw them on the image.
