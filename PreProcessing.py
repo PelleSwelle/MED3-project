@@ -37,6 +37,7 @@ def grayScale(img: Image):
 
     result = np.array(img_grayscaled)
     return result
+    # this should add to the list of versions in the hand
 
 
 def invertColor(img: Image):

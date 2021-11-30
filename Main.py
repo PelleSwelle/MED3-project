@@ -1,76 +1,99 @@
-import io
-
+from os import name
+import Hand
 import cv2 as cv
-
 import numpy as np
-import PreProcessing
-from datetime import datetime  # used to name the images, that are captured
+import Image
+import Colors
 
-saveDir = "./captures/"
+images = []
 
-cap = cv.VideoCapture(0)
+def print_images():
+    print(Colors.green + "current content of images:")
+    for image in images:
+        print(Colors.green + image.name, ", ", image.version, "" + Colors.white)
 
-# Check if the webcam is opened correctly
-if not cap.isOpened():
-    raise IOError("Cannot open webcam")
+def get_version(version: Image.ImageVersion):
+    image_to_return: Image.Image
+    for image in images:
+        if image.version == version:
+            image_to_return = image
+    return image_to_return
 
-grayScaleMode = False
-thresholdVal = 128
-maxVal = 255
-cannyMode = False
-binaryMode = False
-zeros = np.zeros((512, 512, 3), np.uint8)
-subtractor = cv.createBackgroundSubtractorMOG2(history=100, varThreshold=50, detectShadows=True)
+def main():
+
+    # load an image as the original image
+    original_image = Image.Image(
+        name="original image", 
+        img_array=cv.imread("reference/wSign2.jpg"), 
+        version=Image.ImageVersion.ORIGINAL
+    )
+
+    images.append(original_image)
+
+    # instantiate a hand from that image
+    hand = Hand.Hand(original_image)
+
+    hand.print_finger_states()
+
+    preprocesser = Hand.PreProcessor(hand)
+    
+    # PRODUCING THE IMAGES
+    grayscaled_image = Image.Image(
+        name="grayscaled image",
+        img_array=preprocesser.gray_scale(get_version(Image.ImageVersion.ORIGINAL)),
+        version=Image.ImageVersion.GRAYSCALED
+    )
+    # TODO should add to images atomatically when instantiating
+    images.append(grayscaled_image)
+
+    binarized_image = Image.Image(
+        name="binarized image",
+        img_array=preprocesser.binarize(
+            get_version(
+                Image.ImageVersion.GRAYSCALED
+            )
+        ),
+        version=Image.ImageVersion.BINARIZED 
+    )
+    images.append(binarized_image)
+
+    hand.contours = preprocesser.get_contours(
+        get_version(Image.ImageVersion.BINARIZED)
+    )
+    
+    contoured_image = Image.Image(
+        name="contoured image",
+        img_array=preprocesser.contour(
+            get_version(
+                Image.ImageVersion.BINARIZED
+            )
+        ),
+        version=Image.ImageVersion.CONTOURED
+    )
+    images.append(contoured_image)
+    print_images()
 
 
-def mouseEvent(event, x, y, flags, param):
-    if event == cv.EVENT_MOUSEWHEEL:
-        print("wheel")
+    # convex_hull_image = Image.Image(
+    #     name="image with convex hull",
+        
+    #     img_array=preprocesser.convex_hull(
+    #         contours=preprocesser.get_contours(
+    #             image=get_version(
+    #                 version=Image.ImageVersion.BINARIZED
+    #             )
+    #         )[0]
+    #     ),
+    #     version=Image.ImageVersion.WITH_HULL
+    # )
+    # images.append(convex_hull_image)
+    
+    #showing all the current versions
+    for image in images:
+        image.imshow()
 
+    cv.waitKey(0)
+    cv.destroyAllWindows()
 
-
-while True:
-    now = datetime.now()
-    currentTime = now.strftime("%H%M%S")
-
-    ret, input = cap.read()
-    mask = subtractor.apply(input)
-    output = input
-
-
-    # ************* MODES *************
-    if cannyMode:
-        output = cv.Canny(input, 1, 100)
-    elif grayScaleMode:
-        output = cv.cvtColor(input, cv.COLOR_BGR2GRAY)
-    elif binaryMode:
-        output = PreProcessing.removeBackground(input)
-    else:
-        output = input
-
-    c = cv.waitKey(1)
-
-    # **************** KEYBOARD INPUTS ****************
-    # capture image
-    if c == ord('p'):
-        file = "cap" + currentTime + ".jpg"
-        cv.imwrite(saveDir + file, output)
-        print(file, " is stored in ", saveDir)
-    # toggle canny mode
-    elif c == ord("c"):
-        cannyMode = not cannyMode
-    # toggle grayscale
-    elif c == ord("g"):
-        grayScaleMode = not grayScaleMode
-    elif c == ord("b"):
-        binaryMode = not binaryMode
-        print("binaryMode: ", binaryMode)
-    # exit
-    elif c == 27:
-        break
-
-    cv.imshow("Camera feed", output)
-    cv.imshow("masked", mask)
-
-cap.release()
-cv.destroyAllWindows()
+if __name__=="__main__":
+    main()

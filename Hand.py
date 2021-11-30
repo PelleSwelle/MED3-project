@@ -1,20 +1,17 @@
 from dataclasses import dataclass, field
 from enum import Enum, auto
 import cv2 as cv
-from cv2 import data
+from cv2 import bitwise_not, data
 import numpy as np
 from copy import copy
 from PIL import Image
 from PIL import ImageDraw
-from numpy import version
 from numpy.lib.histograms import _histogram_bin_edges_dispatcher
-import pandas as pd
 import math
-import PreProcessing
 import Extraction
 import Colors
 import Draw
-
+import Image
 
 
 class FingerState(Enum):
@@ -23,6 +20,7 @@ class FingerState(Enum):
     OUT = auto()
     NOT_DECIDED = auto()
 
+
 class FingerName(Enum):
     INDEX_FINGER = auto()
     MIDDLE_FINGER = auto()
@@ -30,35 +28,24 @@ class FingerName(Enum):
     LITTLE_FINGER = auto()
     THUMB_FINGER = auto()
 
-@dataclass
+
 class Finger:
+    """Generic class for each finger on the hand."""
     name: FingerName
     state: FingerState
+
+    fingertip_position: tuple
+
+    def __init__(self, name: FingerName) -> None:
+        self.name = name
+        self.state = FingerState.NOT_DECIDED
 
     def get_state(self):
         return self.state
 
     def set_finger_state(self, state:FingerState):
         self.state = state
-    
-    
-class ImageVersion(Enum):
-    """An attribute that every image should have to keep track of different versions"""
-    ORIGINAL = auto()
-    GRAYSCALED = auto()
-    BINARIZED = auto()
-    CONTOURED = auto()
-    WITH_HULL = auto()
-    WITH_FINGERTIPS = auto()
-    WITH_DEFECTS = auto()
-    WITH_NUMBER_OF_FINGERS = auto()
-    # add more
 
-@dataclass
-class Image:
-    name: str
-    img_array: np.array
-    version: ImageVersion
 
 class Orientation(Enum):
     """ orientations for the hand"""
@@ -67,28 +54,46 @@ class Orientation(Enum):
     LEFT_RIGHT = auto()
     TOP_DOWN = auto()
 
-@dataclass
+
 class Hand:
-    """
-    Generic class containing all the data that the hand should contain.
+    """Generic class containing all the data that the hand should contain."""
     
-    contains a list of current versions
-    """
-    # TODO for the image, this should be the Image datatype
-    extraction_image: np.array
-    data_canvas: np.array
-    width: int
     height: int
+    width: int
+    center: tuple
+    orientation: Orientation
+    contours: list
     
-    # data to be extracted from the image
-    index_finger: Finger
-    middle_finger: Finger
-    ring_finger: Finger
-    little_finger: Finger
-    thumb_finger: Finger
-    
-    # field(init=false) does that this is not a part of the implicit constructor
-    versions: list = field(init=False)
+
+    def __init__(self, image: Image.Image) -> None:
+        self.width = None
+        self.height = None
+        self.orientation = None
+        self.center = None
+
+        self.extraction_image: Image.Image = image
+        
+        self.data_canvas: np.array = np.zeros((
+            self.extraction_image.img_array.shape[0], 
+            self.extraction_image.img_array.shape[1])
+        )
+
+        # data to be extracted from the image
+        self.index_finger = Finger(FingerName.INDEX_FINGER)
+        self.middle_finger = Finger(FingerName.MIDDLE_FINGER)
+        self.ring_finger = Finger(FingerName.RING_FINGER)
+        self.little_finger = Finger(FingerName.LITTLE_FINGER)
+        self.thumb_finger = Finger(FingerName.THUMB_FINGER)
+        
+        self.fingers: list = [
+            self.index_finger, 
+            self.middle_finger, 
+            self.ring_finger, 
+            self.little_finger, 
+            self.thumb_finger
+        ]
+        
+
     def print_finger_states(self):
         for finger in self.fingers:
             print(Colors.blue + "", finger.name, ", ", finger.state, "" +Colors.white)
@@ -96,66 +101,54 @@ class Hand:
     def imshow_all_versions(self):
         for version in self.versions:
             cv.imshow(version, version.img)
-            
+    
+    def print_hand(self):
+        print("height: ", self.height)
+        print("width: ",self.width)
+        print("center: ", self.center)
+        print("orientation: ", self.orientation)
+        print("contours: ", len(self.contours))
+        self.print_finger_states()
 
 class PreProcessor:
-    processing_image: Image
-    canvas: np.array
-    hand: Hand
 
     def __init__(self, hand: Hand) -> None:
-        self.processing_image = hand.extraction_image
+        self.processing_image = hand.extraction_image.img_array
         self.canvas = np.zeros((self.processing_image.shape[0], self.processing_image.shape[1]))
     
-    def gray_scale(self):
+    def gray_scale(self, image: Image.Image):
         """Method for grayscaling an image. Returns the grayscaled image"""
-        self.canvas = cv.cvtColor(self.processing_image, cv.COLOR_BGR2GRAY)
+        self.canvas = cv.cvtColor(image.img_array, cv.COLOR_BGR2GRAY)
         cv.imshow("grayscaled", self.canvas)
         return self.canvas
     
-    def binarize(self, hand: Hand):
-        for image in hand.versions:
-            if image.version == ImageVersion.GRAYSCALED:
-                th, otsuThresh = cv.threshold(image.img_array, 128, 192, cv.THRESH_OTSU)
-            
-        return otsuThresh
+    def binarize(self, image: Image.Image):
+        th, otsu_thresh = cv.threshold(image.img_array, 240, 255, cv.THRESH_OTSU)
+        inverted = bitwise_not(otsu_thresh)
+        return inverted
 
-def main():
-    img = Image (
-        name="original image", 
-        img_array=cv.imread("reference/Wsign2.jpg"), 
-        version=ImageVersion.ORIGINAL)
+    def get_contours(self, image: Image.Image):
+        contours, hierarchy = cv.findContours(image.img_array, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
+        contours = max(contours, key=lambda x: cv.contourArea(x))
+        return contours, hierarchy
 
-    hand = Hand(
-        extraction_image=img.img_array, 
+    def contour(self, image: Image.Image):
+        # GET CONTOURS
+        contours, hierarchy = cv.findContours(image.img_array, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
+        contours = max(contours, key=lambda x: cv.contourArea(x))
+        self.canvas = np.zeros((image.img_array.shape[0], image.img_array.shape[1]))
+        cv.drawContours(self.canvas, [contours], -1, 100, 2)
 
-        width=img.img_array.shape[0], 
-        height=img.img_array.shape[1], 
+        return self.canvas
 
-        data_canvas=np.zeros((
-            img.img_array.shape[0], 
-            img.img_array.shape[1])), 
-        index_finger=Finger(FingerName.INDEX_FINGER, FingerState.NOT_DECIDED),
-        middle_finger=Finger(FingerName.MIDDLE_FINGER, FingerState.NOT_DECIDED),
-        ring_finger=Finger(FingerName.RING_FINGER, FingerState.NOT_DECIDED),
-        little_finger=Finger(FingerName.LITTLE_FINGER, FingerState.NOT_DECIDED),
-        thumb_finger=Finger(FingerName.THUMB_FINGER, FingerState.NOT_DECIDED)
-    )
+        
+    def convex_hull(self, contours):
+        # create hull array for convex hull points
+        hull = cv.convexHull(contours, returnPoints=False)
 
-    preprocesser = PreProcessor(hand)
-    grayscaled_image = Image(
-        name="grayscaled image",
-        img_array=preprocesser.gray_scale(),
-        version=ImageVersion.GRAYSCALED
-    )
+        cv.drawContours(self.canvas, hull, -1, (0, 255, 0), 1)
+        
 
-    
-    # hand.print_finger_states()
+        return self.canvas
 
-    # hand.imshow_all_versions()
-
-    cv.waitKey(0)
-    cv.destroyAllWindows()
-
-if __name__=="__main__":
-    main()
+    # def get_convex_hull_points(self, hull):
