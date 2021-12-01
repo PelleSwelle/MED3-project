@@ -44,9 +44,7 @@ def main():
     cv.imshow("inverted", array_inverted)
     print("inverted the colors of the image")
 
-    # GET CONTOURS
-    contours, hierarchy = cv.findContours(array_inverted, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
-    contours = max(contours, key=lambda x: cv.contourArea(x))
+    
     print("number of contours: ", len(contours))
 
     # DRAW THE CONTOURS

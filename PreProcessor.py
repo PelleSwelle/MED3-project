@@ -20,9 +20,7 @@ class PreProcessor:
 
     def gray_scale(self, image: Image):
         """Method for grayscaling an image. Returns the grayscaled image"""
-        self.canvas = cv.cvtColor(image.img_array, cv.COLOR_BGR2GRAY)
-        cv.imshow("grayscaled", self.canvas)
-        return self.canvas
+        return cv.cvtColor(image.img_array, cv.COLOR_BGR2GRAY)
 
 
     def blur_gaussian(self, image: Image):

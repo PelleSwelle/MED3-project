@@ -25,7 +25,6 @@ class FingerState(Enum):
     TOUCHING_LITTLE = auto()
 
 
-
 class FingerName(Enum):
     INDEX_FINGER = auto()
     MIDDLE_FINGER = auto()
@@ -55,6 +54,7 @@ class Finger:
     def set_finger_tip_position(self, position: tuple):
         self.fingertip_position = position
 
+
 class Orientation(Enum):
     """ orientations for the hand"""
     BOTTOM_UP = auto()
@@ -81,7 +81,6 @@ class Hand:
     convex_hull: list
     finger_tips: list
     finger_vallies: list
-
 
 
 

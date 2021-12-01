@@ -12,9 +12,11 @@ import PreProcessing
 import Colors
 
 class Extractor:
+
     def get_contours(self, image: Image.Image):
         contours, hierarchy = cv.findContours(image.img_array, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
-        contours = max(contours, key=lambda x: cv.contourArea(x))
+        # contours = max(contours, key=lambda x: cv.contourArea(x))
+        
         return contours, hierarchy
 
     def contour(self, image: Image.Image):
@@ -26,6 +28,7 @@ class Extractor:
 
         return self.canvas
 
+
     def get_convex_hull_points(self, image:Image.Image, contours: list):
         # create hull array for convex hull points
         contour_list =self.get_contours(image=image)
@@ -36,43 +39,39 @@ class Extractor:
             # creating convex hull object for each contour
             hull.append(cv.convexHull(contours[i], returnPoints=False))
         return hull
-        
-    def convex_hull(self, image:Image.Image):
-        # eeeeeeerrrrrrrrggghhhh
-        contours, hierarchy = self.get_contours(image)
-        # create an empty black image
+
+
+    def convex_hull(self, image: Image):
+        canvas_height = image.img_array.shape[0]
+        canvas_width = image.img_array.shape[1]
+
         canvas = np.zeros(
             (
-                image.img_array.shape[0], 
-                image.img_array.shape[1], 
-                3
-            ), 
-            np.uint8
+                canvas_width, 
+                canvas_height
+            )
+        )
+        
+        contours, hierarchy = cv.findContours(
+            image=image.img_array, 
+            mode=cv.RETR_TREE, 
+            method=cv.CHAIN_APPROX_SIMPLE
         )
 
-        hull = self.get_convex_hull_points(
-            image=image, 
-            contours=self.get_contours(image)
-        )
-
-        # draw contours and hull points
         for i in range(len(contours)):
+            hull = cv.convexHull(points=contours[i])
     
-            color = (255, 0, 0) # blue - color for convex hull
-            # draw ith contour
-            # cv.drawContours(
-            #     image=drawing, 
-            #     contours=contours, 
-            #     contourIdx=i, 
-            #     color=color_contours, 
-            #     thickness=1, 
-            #     lineType=8, 
-            #     hierarchy=hierarchy
-            # )
-            # draw ith convex hull object
-            cv.drawContours(canvas, hull, i, color, 1, 8)
+        cv.drawContours(
+            image=canvas, 
+            contours=[hull], 
+            contourIdx=-1, 
+            color=(255, 0, 0), 
+            thickness=2
+        )
+        return canvas
 
-# NONE OF THIS UNDER HERE WORKS YET
+        # NONE OF THIS UNDER HERE WORKS YET
+
 
     def get_defects(contours):
         hull = cv.convexHull(contours, returnPoints=False)
@@ -177,3 +176,16 @@ class Extractor:
         
         return center_x, center_y
 
+    # helper function to draw on the image.
+    def draw_point(_img: Image, _x: int, _y: int, color):
+        rad = 2
+        draw = ImageDraw.Draw(_img)
+        draw.ellipse(
+            (
+                _x - rad, _y - rad,
+                _x + rad, _y + rad
+            ), 
+            fill=color, 
+            outline=100, 
+            width=1
+        )

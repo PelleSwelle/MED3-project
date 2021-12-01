@@ -6,7 +6,7 @@ import cv2 as cv
 import numpy as np
 from Image import Image, ImageVersion
 import Colors
-from PreProcessor import *
+from PreProcessor import PreProcessor
 from Extractor import Extractor
 
 images = []
@@ -16,8 +16,8 @@ def print_images():
     for image in images:
         print(Colors.green + image.name, ", ", image.version, "" + Colors.white)
 
-def get_version(version: Image.ImageVersion):
-    image_to_return: Image.Image
+def get_version(version: ImageVersion):
+    image_to_return: Image
     for image in images:
         if image.version == version:
             image_to_return = image
@@ -47,7 +47,7 @@ def main():
     blurred_image = Image(
         name="blurred with gaussian blur",
         img_array=(
-            PreProcessor.blur_gaussian(
+            preprocesser.blur_gaussian(
                 image=get_version(
                     version=ImageVersion.ORIGINAL
                 )
@@ -94,15 +94,13 @@ def main():
         version=ImageVersion.CONTOURED
     )
     images.append(contoured_image)
-    print_images()
 
+    
     convex_hull_image = Image(
         name="image with convex hull",
         
         img_array=extractor.convex_hull(
-            image=get_version(
-                version=ImageVersion.BINARIZED
-            )
+            image=get_version(ImageVersion.BINARIZED)
         ),
         version=ImageVersion.WITH_HULL
     )
