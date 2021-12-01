@@ -13,8 +13,8 @@ from Image import Image
 
 class PreProcessor:
 
-    def __init__(self, hand: Hand) -> None:
-        self.processing_image = hand.extraction_image.img_array
+    def __init__(self, image: Image) -> None:
+        self.processing_image = image.img_array
         self.canvas = np.zeros((self.processing_image.shape[0], self.processing_image.shape[1]))
     
 
@@ -27,7 +27,6 @@ class PreProcessor:
         output_image = cv.GaussianBlur(
             image.img_array, 
             [7, 7], cv.BORDER_DEFAULT)
-        cv.imshow("from gaussian blur", output_image)
         return output_image
 
 

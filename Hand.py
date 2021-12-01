@@ -5,6 +5,7 @@ from cv2 import bitwise_not, data
 import numpy as np
 from PIL import Image
 from PIL import ImageDraw
+from numpy.core.defchararray import center
 from numpy.lib.histograms import _histogram_bin_edges_dispatcher
 import math
 import Colors
@@ -57,10 +58,41 @@ class Finger:
 
 class Orientation(Enum):
     """ orientations for the hand"""
-    BOTTOM_UP = auto()
-    RIGHT_LEFT = auto()
-    LEFT_RIGHT = auto()
-    TOP_DOWN = auto()
+    FINGERS_LEFT = auto()
+    FINGERS_UP = auto()
+    FINGERS_RIGHT = auto()
+
+
+class DataCanvas:
+    """A blank canvas able to draw on it self"""
+    canvas: np.array
+
+    def __init__(self) -> None:
+        self.canvas = np.zeros((0, 0))
+    
+    def get_size(self):
+        return (self.canvas.shape[0], self.canvas.shape[1])
+    
+    def set_size(self,size: tuple):
+        self.canvas = np.zeros(size)
+
+    def add_contours(self, contours: list) -> None:
+        cv.drawContours(self.canvas, contours, -1, Colors.contours_color, 1)
+    
+    def add_finger_point(self, coordinate: tuple) -> None:
+        # TODO write the name of the finger on the canvas
+        cv.circle(self.canvas, coordinate, 2, Colors.fingertip_color, -1)
+
+    def add_center_point(self, center_point: tuple) -> None:
+        # TODO write on the image
+        cv.circle(self.canvas, center_point, 2, Colors.center_color, -1)
+
+    def add_hull(self, hull) -> None:
+        pass
+
+    def add_defects(self, defects) -> None:
+        pass
+
 
 
 class Hand:
@@ -82,20 +114,15 @@ class Hand:
     finger_tips: list
     finger_vallies: list
 
-
-
-    def __init__(self, image: Image.Image) -> None:
+    def __init__(self) -> None:
         self.width = None
         self.height = None
         self.orientation = None
         self.center = None
 
-        self.extraction_image: Image.Image = image
+        # self.extraction_image: Image.Image = image
         
-        self.data_canvas: np.array = np.zeros((
-            self.extraction_image.img_array.shape[0], 
-            self.extraction_image.img_array.shape[1])
-        )
+        self.data_canvas = DataCanvas()
 
         # data to be extracted from the image
         self.index_finger = Finger(FingerName.INDEX_FINGER)
@@ -116,6 +143,10 @@ class Hand:
     def print_finger_states(self):
         for finger in self.fingers:
             print(Colors.blue + "", finger.name, ", ", finger.state, "" +Colors.white)
+
+
+    def imshow_data_canvas(self) -> None:
+        cv.imshow("data extracted", self.data_canvas.canvas)
 
 
     def imshow_all_versions(self):

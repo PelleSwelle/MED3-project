@@ -13,25 +13,33 @@ import Colors
 
 class Extractor:
 
-    def get_contours(self, image: Image.Image):
+    def extract_contours(self, image: Image.Image):
         contours, hierarchy = cv.findContours(image.img_array, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
         # contours = max(contours, key=lambda x: cv.contourArea(x))
         
+        # return contours, hierarchy
         return contours, hierarchy
 
-    def contour(self, image: Image.Image):
-        # GET CONTOURS
-        contours, hierarchy = cv.findContours(image.img_array, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
-        contours = max(contours, key=lambda x: cv.contourArea(x))
-        self.canvas = np.zeros((image.img_array.shape[0], image.img_array.shape[1]))
-        cv.drawContours(self.canvas, [contours], -1, 100, 2)
-
+    def contour_image(self, image: Image, contours, hieararchy):
+        # contours = max(contours, key=lambda x: cv.contourArea(x))
+        self.canvas = np.zeros(
+            (image.img_array.shape[0], 
+            image.img_array.shape[1]
+            )
+        )
+        cv.drawContours(
+            image=self.canvas, 
+            contours=[contours], 
+            contourIdx=-1, 
+            color=255, 
+            thickness=2
+        )
         return self.canvas
 
 
-    def get_convex_hull_points(self, image:Image.Image, contours: list):
+    def extract_convex_hull(self, image:Image.Image):
         # create hull array for convex hull points
-        contour_list =self.get_contours(image=image)
+        contour_list =self.extract_contours(image=image)
         hull = []
 
         # calculate points for each contour
@@ -73,9 +81,11 @@ class Extractor:
         # NONE OF THIS UNDER HERE WORKS YET
 
 
-    def get_defects(contours):
+    def get_defects(self, contours, hull):
         hull = cv.convexHull(contours, returnPoints=False)
-        return cv.convexityDefects(contours, hull)
+        defects = cv.convexityDefects(contours, hull)
+        print("get_defects defects: ", defects)
+        return defects
 
     def get_number_of_fingers(defects, contours, analyze_image, draw_image: np.ndarray):
         """Uses hull defects to count the nmber of fingers outside of the palm."""

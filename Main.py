@@ -36,11 +36,16 @@ def main():
     images.append(original_image)
 
     # instantiate a hand from that image
-    hand = Hand(original_image)
+    hand = Hand()
 
-    hand.print_finger_states()
-
-    preprocesser = PreProcessor(hand)
+    hand.data_canvas.set_size(
+        (
+            original_image.img_array.shape[0], 
+            original_image.img_array.shape[1]
+        )
+    )
+    print("hand data canvas size: ", hand.data_canvas.get_size())
+    preprocesser = PreProcessor(original_image)
     extractor = Extractor()
 
     # PRODUCING THE IMAGES
@@ -79,23 +84,44 @@ def main():
     )
     images.append(binarized_image)
 
-    hand.contours = extractor.get_contours(
-        get_version(ImageVersion.BINARIZED)
-    )
     
+    contours = extractor.extract_contours(
+        image=get_version(
+            version=ImageVersion.BINARIZED
+        )
+    )
+    hand.contours = contours
+
+    # print("root: contours", contours)
+    print("root: contours:, ", hand.contours)
+    
+    # TODO this should take the contours from just above.
     contoured_image = Image(
         name="contoured image",
         # pretty sure we can grab the contours from jus above
-        img_array=extractor.contour(
-            get_version(
-                ImageVersion.BINARIZED
-            )
+        img_array=extractor.contour_image(
+            get_version(ImageVersion.BINARIZED), 
+            contours=contours[0],
+            hieararchy=contours[1]
         ),
         version=ImageVersion.CONTOURED
     )
     images.append(contoured_image)
 
-    
+    cv.drawContours(
+        image=hand.data_canvas.canvas,
+        contours=contours, 
+        contourIdx=-1, 
+        color=Colors.contours_color, 
+        thickness=1
+    )
+
+    convex_hull = extractor.extract_convex_hull(
+        image=get_version(
+            version=ImageVersion.CONTOURED
+        )
+    )
+
     convex_hull_image = Image(
         name="image with convex hull",
         
@@ -106,10 +132,16 @@ def main():
     )
     images.append(convex_hull_image)
     
+    # defects = extractor.get_defects(contours=contours)
+    # print("defects: \n", defects)
+
     #showing all the current versions
     for image in images:
         image.imshow()
 
+    hand.data_canvas.add_hull(hull=convex_hull)
+
+    hand.imshow_data_canvas()
     cv.waitKey(0)
     cv.destroyAllWindows()
 
