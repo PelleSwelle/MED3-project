@@ -46,13 +46,13 @@ class Finger:
         self.state = FingerState.NOT_DECIDED
         self.fingertip_position = None
 
-    def get_state(self):
+    def get_state(self) -> FingerState:
         return self.state
 
-    def set_finger_state(self, state:FingerState):
+    def set_finger_state(self, state:FingerState) -> None:
         self.state = state
 
-    def set_finger_tip_position(self, position: tuple):
+    def set_finger_tip_position(self, position: tuple) -> None:
         self.fingertip_position = position
 
 
@@ -88,7 +88,13 @@ class DataCanvas:
         cv.circle(self.canvas, center_point, 2, Colors.center_color, -1)
 
     def add_hull(self, hull) -> None:
-        pass
+        cv.drawContours(
+            image=self.canvas, 
+            contours=hull, 
+            contourIdx=-1, 
+            color=Colors.hull_color, 
+            thickness=1
+        )
 
     def add_defects(self, defects) -> None:
         pass
@@ -109,7 +115,7 @@ class Hand:
     little_finger: Finger
     thumb_finger: Finger
 
-    contours: list
+    contours: tuple
     convex_hull: list
     finger_tips: list
     finger_vallies: list
@@ -140,7 +146,7 @@ class Hand:
         ]
         
 
-    def print_finger_states(self):
+    def print_finger_states(self) -> None:
         for finger in self.fingers:
             print(Colors.blue + "", finger.name, ", ", finger.state, "" +Colors.white)
 
@@ -149,12 +155,12 @@ class Hand:
         cv.imshow("data extracted", self.data_canvas.canvas)
 
 
-    def imshow_all_versions(self):
+    def imshow_all_versions(self) -> None:
         for version in self.versions:
             cv.imshow(version, version.img)
 
 
-    def print_hand(self):
+    def print_hand(self) -> None:
         print("height: ", self.height)
         print("width: ",self.width)
         print("center: ", self.center)

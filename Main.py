@@ -44,7 +44,6 @@ def main():
             original_image.img_array.shape[1]
         )
     )
-    print("hand data canvas size: ", hand.data_canvas.get_size())
     preprocesser = PreProcessor(original_image)
     extractor = Extractor()
 
@@ -91,9 +90,6 @@ def main():
         )
     )
     hand.contours = contours
-
-    # print("root: contours", contours)
-    print("root: contours:, ", hand.contours)
     
     # TODO this should take the contours from just above.
     contoured_image = Image(
@@ -101,32 +97,36 @@ def main():
         # pretty sure we can grab the contours from jus above
         img_array=extractor.contour_image(
             get_version(ImageVersion.BINARIZED), 
-            contours=contours[0],
-            hieararchy=contours[1]
+            contours=contours
         ),
         version=ImageVersion.CONTOURED
     )
     images.append(contoured_image)
 
-    cv.drawContours(
-        image=hand.data_canvas.canvas,
-        contours=contours, 
-        contourIdx=-1, 
-        color=Colors.contours_color, 
-        thickness=1
-    )
+    # cv.drawContours(
+    #     image=hand.data_canvas.canvas,
+    #     contours=hand.contours[0], 
+    #     contourIdx=-1, 
+    #     color=Colors.contours_color, 
+    #     thickness=1
+    # )
 
-    convex_hull = extractor.extract_convex_hull(
+    hand.convex_hull = extractor.extract_convex_hull(
         image=get_version(
-            version=ImageVersion.CONTOURED
-        )
+            version=ImageVersion.BINARIZED
+        ), 
+        contours=hand.contours
     )
+    print("hand.convex_hull is of type: ", type(hand.convex_hull))
+
 
     convex_hull_image = Image(
         name="image with convex hull",
-        
-        img_array=extractor.convex_hull(
-            image=get_version(ImageVersion.BINARIZED)
+        img_array=extractor.hull_image(
+            image=get_version(
+                ImageVersion.BINARIZED
+            ), 
+            contours=hand.contours
         ),
         version=ImageVersion.WITH_HULL
     )
@@ -137,9 +137,12 @@ def main():
 
     #showing all the current versions
     for image in images:
+        print("image version: ", image.name)
         image.imshow()
 
-    hand.data_canvas.add_hull(hull=convex_hull)
+    # print("hand.convex_hull: ", hand.convex_hull)
+    # hand.data_canvas.add_hull()
+
 
     hand.imshow_data_canvas()
     cv.waitKey(0)

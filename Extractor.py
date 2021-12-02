@@ -13,15 +13,18 @@ import Colors
 
 class Extractor:
 
-    def extract_contours(self, image: Image.Image):
-        contours, hierarchy = cv.findContours(image.img_array, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
+    def extract_contours(self, image: Image) -> list:
+        contours, hierarchy = cv.findContours(
+            image=image.img_array, 
+            mode=cv.RETR_TREE, 
+            method=cv.CHAIN_APPROX_SIMPLE
+        )
         # contours = max(contours, key=lambda x: cv.contourArea(x))
         
         # return contours, hierarchy
-        return contours, hierarchy
+        return contours
 
-    def contour_image(self, image: Image, contours, hieararchy):
-        # contours = max(contours, key=lambda x: cv.contourArea(x))
+    def contour_image(self, image: Image, contours: list) -> np.ndarray:
         self.canvas = np.zeros(
             (image.img_array.shape[0], 
             image.img_array.shape[1]
@@ -29,7 +32,7 @@ class Extractor:
         )
         cv.drawContours(
             image=self.canvas, 
-            contours=[contours], 
+            contours=contours, 
             contourIdx=-1, 
             color=255, 
             thickness=2
@@ -37,19 +40,26 @@ class Extractor:
         return self.canvas
 
 
-    def extract_convex_hull(self, image:Image.Image):
-        # create hull array for convex hull points
-        contour_list =self.extract_contours(image=image)
+    def extract_convex_hull(self, image:Image, contours: list) -> np.array:
         hull = []
+        # print("length of contours[0]: ", len(contours[0]))
+        # print("contours type: ", type(contours))
+        # contours = np.ndarray.tolist(contours)
 
         # calculate points for each contour
         for i in range(len(contours)):
             # creating convex hull object for each contour
-            hull.append(cv.convexHull(contours[i], returnPoints=False))
+            hull.append(
+                cv.convexHull(
+                    points=contours[i], #aaaaaaaaaaaa
+                    returnPoints=False
+                )
+            )
+        print("length of hull: ", len([hull]))
         return hull
 
 
-    def convex_hull(self, image: Image):
+    def hull_image(self, image: Image, contours) -> np.array:
         canvas_height = image.img_array.shape[0]
         canvas_width = image.img_array.shape[1]
 
@@ -59,32 +69,31 @@ class Extractor:
                 canvas_height
             )
         )
-        
-        contours, hierarchy = cv.findContours(
-            image=image.img_array, 
-            mode=cv.RETR_TREE, 
-            method=cv.CHAIN_APPROX_SIMPLE
-        )
-
         for i in range(len(contours)):
             hull = cv.convexHull(points=contours[i])
-    
-        cv.drawContours(
-            image=canvas, 
-            contours=[hull], 
-            contourIdx=-1, 
-            color=(255, 0, 0), 
-            thickness=2
-        )
+            cv.drawContours(
+                image=canvas, 
+                contours=hull, 
+                contourIdx=-1, 
+                color=(255, 0, 0), 
+                thickness=2
+            )
         return canvas
 
         # NONE OF THIS UNDER HERE WORKS YET
 
 
+
+
+
+
+
+
+
     def get_defects(self, contours, hull):
         hull = cv.convexHull(contours, returnPoints=False)
         defects = cv.convexityDefects(contours, hull)
-        print("get_defects defects: ", defects)
+        print("get_defects: defects type: ", type(defects))
         return defects
 
     def get_number_of_fingers(defects, contours, analyze_image, draw_image: np.ndarray):
