@@ -12,7 +12,6 @@ import Colors
 import Draw
 import Image
 
-
 class FingerState(Enum):
     """states that a finger can be in"""
     IN = auto()
@@ -100,7 +99,6 @@ class DataCanvas:
         pass
 
 
-
 class Hand:
     """Generic class containing all the data that the hand should contain."""
     
@@ -167,3 +165,43 @@ class Hand:
         print("orientation: ", self.orientation)
         print("contours: ", len(self.contours))
         self.print_finger_states()
+
+    # TODO implement
+    def confirm_orientation(self):
+        raise NotImplementedError()
+
+    #TODO implement
+    def confirm_finger_states(self):
+        raise NotImplementedError()
+
+    # TODO implement
+    def compare_to_database(self):
+        self.confirm_orientation()
+        self.confirm_finger_states()
+
+    def old_compare_to_database(self) -> None:
+        # compare number of fingers
+        no_of_fingers_not_decided = 0
+        no_of_fingers_in = 0
+        no_of_fingers_out = 0
+
+        for finger in self.fingers:
+            if finger.get_state() == FingerState.NOT_DECIDED:
+                no_of_fingers_not_decided +=1        
+            elif finger.get_state() == FingerState.OUT:
+                no_of_fingers_out += 1
+            elif finger.get_state() == FingerState.IN:
+                no_of_fingers_in += 1
+            
+            if finger.get_state != FingerState.NOT_DECIDED:
+                print("we know that...")
+                if finger.get_state == FingerState.OUT:
+                    print(finger.name, ": ", finger.get_state())
+        
+        print(no_of_fingers_not_decided, " are undecided")
+        print(no_of_fingers_out, " are out")
+        print(no_of_fingers_in, " are int")
+
+        print("hand_w: ", Signs.hand_w)
+
+        

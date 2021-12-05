@@ -60,7 +60,7 @@ cv.imshow("contours", contoured_image)
 # cv.imshow("contours", thresh)
 
 # For each contour, find the convex hull and draw it
-# on the original image.
+# on the image.
 canvas = np.zeros((img.shape[0], img.shape[1]))
 
 for i in range(len(contours)):
@@ -73,8 +73,8 @@ cv.drawContours(
         color=(255, 0, 0), 
         thickness=2
     )
-print("hull is of type: ", type(hull))
+
 # Display the final convex hull image
-cv.imshow('ConvexHull', img1)
+# cv.imshow('ConvexHull', img1)
 cv.imshow("data", img1)
 cv.waitKey(0)

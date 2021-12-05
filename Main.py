@@ -1,4 +1,5 @@
 from os import name
+from numpy.core.defchararray import index
 
 from numpy.core.overrides import verify_matching_signatures
 from Hand import Finger, FingerState, Hand
@@ -27,28 +28,30 @@ def main():
     # TODO I think I might be loading the image both as a separate image and through the hand class
 
     # load an image as the original image
-    original_image = Image(
+    IMAGE_ORIGINAL = Image(
         name="original image", 
         img_array=cv.imread("reference/wSign2.jpg"), 
         version=ImageVersion.ORIGINAL
     )
 
-    images.append(original_image)
+    img_size: tuple = IMAGE_ORIGINAL.img_array.shape
+
+    images.append(IMAGE_ORIGINAL)
 
     # instantiate a hand from that image
     hand = Hand()
 
     hand.data_canvas.set_size(
         (
-            original_image.img_array.shape[0], 
-            original_image.img_array.shape[1]
+            IMAGE_ORIGINAL.img_array.shape[0], 
+            IMAGE_ORIGINAL.img_array.shape[1]
         )
     )
-    preprocesser = PreProcessor(original_image)
+    preprocesser = PreProcessor(IMAGE_ORIGINAL)
     extractor = Extractor()
 
     # PRODUCING THE IMAGES
-    blurred_image = Image(
+    IMAGE_BLURRED = Image(
         name="blurred with gaussian blur",
         img_array=(
             preprocesser.blur_gaussian(
@@ -59,9 +62,9 @@ def main():
         ),
         version=ImageVersion.BLURRED
     )
-    images.append(blurred_image)
+    images.append(IMAGE_BLURRED)
 
-    grayscaled_image = Image(
+    IMAGE_GRAYSCALED = Image(
         name="grayscaled image",
         img_array=preprocesser.gray_scale(
             image=get_version(
@@ -69,9 +72,9 @@ def main():
         version=ImageVersion.GRAYSCALED
     )
     # TODO should add to images atomatically when instantiating
-    images.append(grayscaled_image)
+    images.append(IMAGE_GRAYSCALED)
 
-    binarized_image = Image(
+    IMAGE_THRESHOLDED = Image(
         name="binarized image",
         img_array=preprocesser.binarize(
             image=get_version(
@@ -81,67 +84,75 @@ def main():
         ),
         version=ImageVersion.BINARIZED 
     )
-    images.append(binarized_image)
+    images.append(IMAGE_THRESHOLDED)
 
     
-    contours = extractor.extract_contours(
+    contours, _ = cv.findContours(
         image=get_version(
             version=ImageVersion.BINARIZED
-        )
+        ).img_array,
+        mode=cv.RETR_TREE,
+        method=cv.CHAIN_APPROX_SIMPLE
     )
     hand.contours = contours
-    
+
     # TODO this should take the contours from just above.
-    contoured_image = Image(
+    IMAGE_CONTOURED = Image(
         name="contoured image",
         # pretty sure we can grab the contours from jus above
-        img_array=extractor.contour_image(
-            get_version(ImageVersion.BINARIZED), 
-            contours=contours
+        img_array=cv.drawContours(
+            image=np.zeros(img_size), 
+            contours= contours, 
+            contourIdx=-1, 
+            color=Colors.contours_color,
+            thickness=2
         ),
         version=ImageVersion.CONTOURED
     )
-    images.append(contoured_image)
+    images.append(IMAGE_CONTOURED)
 
-    # cv.drawContours(
-    #     image=hand.data_canvas.canvas,
-    #     contours=hand.contours[0], 
-    #     contourIdx=-1, 
-    #     color=Colors.contours_color, 
-    #     thickness=1
-    # )
+        # Find the convex hull object for each contour
+    hull_list = []
+    for i in range(len(contours)):
+        hull = cv.convexHull(contours[i])
+        hull_list.append(hull)
+    
+    hull_canvas = np.zeros(img_size)
+    for i in range(len(contours)):
+        cv.drawContours(hull_canvas, hull_list, i, Colors.hull_color)
+    
+    hand.convex_hull = hull_list
 
-    hand.convex_hull = extractor.extract_convex_hull(
-        image=get_version(
-            version=ImageVersion.BINARIZED
-        ), 
-        contours=hand.contours
-    )
-    print("hand.convex_hull is of type: ", type(hand.convex_hull))
-
-
-    convex_hull_image = Image(
+    IMAGE_HULL = Image(
         name="image with convex hull",
-        img_array=extractor.hull_image(
-            image=get_version(
-                ImageVersion.BINARIZED
-            ), 
-            contours=hand.contours
-        ),
+        img_array=hull_canvas,
         version=ImageVersion.WITH_HULL
     )
-    images.append(convex_hull_image)
-    
-    # defects = extractor.get_defects(contours=contours)
-    # print("defects: \n", defects)
+    images.append(IMAGE_HULL)
+
+
+    defects = extractor.extract_defects(
+        contours=hand.contours[0]
+    )
+    print("defects: \n", defects) # yay
+
+    IMAGE_DEFECTS = np.zeros(img_size)
+    extractor.draw_defects(
+        defects=defects, 
+        cnt=contours[0], 
+        output_image=IMAGE_DEFECTS
+    )
+    cv.imshow("showing defects: ", IMAGE_DEFECTS)
+
 
     #showing all the current versions
     for image in images:
         print("image version: ", image.name)
         image.imshow()
 
-    # print("hand.convex_hull: ", hand.convex_hull)
-    # hand.data_canvas.add_hull()
+
+    hand.imshow_data_canvas()
+    # hand.old_compare_to_database()
 
 
     hand.imshow_data_canvas()

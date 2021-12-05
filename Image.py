@@ -22,11 +22,7 @@ class Image:
     img_array: np.array
     version: ImageVersion
 
-    def __init__(
-        self, 
-        name: str, 
-        img_array: np.array, 
-        version: ImageVersion) -> None:
+    def __init__(self, name: str, img_array: np.array, version: ImageVersion) -> None:
         self.name = name
         self.img_array = img_array
         self.version = version

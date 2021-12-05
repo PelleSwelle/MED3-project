@@ -1,4 +1,4 @@
-from Hand import *
+from Hand import Hand, Finger, FingerName, FingerState
 from Image import Image, ImageVersion
 import cv2 as cv
 # hole in shape: O
@@ -19,7 +19,7 @@ import cv2 as cv
 # B: 4 but together
 # excluding J and Z because they are not static
 
-hand_a = Hand(
+hand_a = Hand.Hand(
     image=Image(
         name="a", 
         img_array=cv.imread(
@@ -59,9 +59,19 @@ hand_w = Hand(
     version=ImageVersion.REFERENCE
     )
 )
+
 hand_w.index_finger.set_finger_state(FingerState.OUT)
 hand_w.middle_finger.set_finger_state(FingerState.OUT)
 hand_w.ring_finger.set_finger_state(FingerState.OUT)
 hand_w.little_finger.set_finger_state(FingerState.IN)
 hand_w.thumb_finger.set_finger_state(FingerState.TOUCHING_LITTLE)
+hand_w.center = (100, 100)
+hand_w.index_tip_coords = (100, 100)
+hand_w.index_middle_coords = (100, 100)
+hand_w.index_ring_coords = (100, 100)
 
+error_threshold = 20
+
+# for finger in comparisonHand:
+#     if comparisonHand.index_tip_coords > hand_w.index_tip_coords - error_threshold && 
+#         comparisonHand.index_tip_coords < hand_w.index_tip_coords + error_threshold

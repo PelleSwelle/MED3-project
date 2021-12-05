@@ -6,7 +6,6 @@ from copy import copy
 from PIL import Image
 from PIL import ImageDraw
 from numpy.lib.histograms import _histogram_bin_edges_dispatcher
-import pandas as pd
 import math
 import PreProcessing
 import Colors
@@ -19,12 +18,13 @@ class Extractor:
             mode=cv.RETR_TREE, 
             method=cv.CHAIN_APPROX_SIMPLE
         )
-        # contours = max(contours, key=lambda x: cv.contourArea(x))
+        contours = max(contours, key=lambda x: cv.contourArea(x))
         
         # return contours, hierarchy
         return contours
 
-    def contour_image(self, image: Image, contours: list) -> np.ndarray:
+
+    def draw_contours(self, image: Image, contours: list) -> np.ndarray:
         self.canvas = np.zeros(
             (image.img_array.shape[0], 
             image.img_array.shape[1]
@@ -40,11 +40,8 @@ class Extractor:
         return self.canvas
 
 
-    def extract_convex_hull(self, image:Image, contours: list) -> np.array:
+    def extract_convex_hull(self, contours: list) -> list:
         hull = []
-        # print("length of contours[0]: ", len(contours[0]))
-        # print("contours type: ", type(contours))
-        # contours = np.ndarray.tolist(contours)
 
         # calculate points for each contour
         for i in range(len(contours)):
@@ -59,7 +56,7 @@ class Extractor:
         return hull
 
 
-    def hull_image(self, image: Image, contours) -> np.array:
+    def draw_hull(self, image: Image, contours: list) -> np.array:
         canvas_height = image.img_array.shape[0]
         canvas_width = image.img_array.shape[1]
 
@@ -69,13 +66,19 @@ class Extractor:
                 canvas_height
             )
         )
+
+        # Find the convex hull object for each contour
+        hull_list = []
         for i in range(len(contours)):
-            hull = cv.convexHull(points=contours[i])
+            hull = cv.convexHull(contours[i])
+            hull_list.append(hull)
+
+        for i in range(len(contours)):
             cv.drawContours(
                 image=canvas, 
-                contours=hull, 
-                contourIdx=-1, 
-                color=(255, 0, 0), 
+                contours=hull_list, 
+                contourIdx=i, 
+                color=Colors.hull_color, 
                 thickness=2
             )
         return canvas
@@ -83,20 +86,49 @@ class Extractor:
         # NONE OF THIS UNDER HERE WORKS YET
 
 
-
-
-
-
-
-
-
-    def get_defects(self, contours, hull):
-        hull = cv.convexHull(contours, returnPoints=False)
-        defects = cv.convexityDefects(contours, hull)
+    def extract_defects(self, contours):
+        hull_indices = cv.convexHull(contours, returnPoints=False)
+        defects = cv.convexityDefects(contours, hull_indices)
+        # returns an array containing the convexity defects as output
+        # start point, endpoint, farthest point, approximate distance to the farthest point
+        
         print("get_defects: defects type: ", type(defects))
         return defects
 
-    def get_number_of_fingers(defects, contours, analyze_image, draw_image: np.ndarray):
+
+    def draw_defects(
+        self, 
+        defects: np.ndarray, 
+        cnt, 
+        output_image: np.ndarray) -> None:
+        
+        hull = cv.convexHull(cnt, returnPoints = False)
+        defects = cv.convexityDefects(cnt, hull)
+
+        points_canvas = np.zeros(output_image.shape)
+
+        for i in range(defects.shape[0]):
+            s,e,f,d = defects[i,0]
+            start = tuple(cnt[s][0])
+            end = tuple(cnt[e][0])
+            far = tuple(cnt[f][0])
+
+            cv.line(output_image,start,end,[0,255,0],2)
+            cv.line(output_image,start,far,[0,0,255],2)
+            cv.line(output_image,far,end,[255,0,0],2)
+            # cv.line(output_image,start,end,[0,255,0],2)
+            # cv.circle(output_image,far,5,[0,0,255],-1)
+            cv.circle(points_canvas,far,5,[0,0,255],-1)
+            cv.putText(
+                img=output_image, 
+                text="end", 
+                org=end, 
+                fontFace=cv.FONT_HERSHEY_SIMPLEX, 
+                fontScale=1, 
+                color=(100, 100, 100)
+            )
+
+    def get_number_of_fingers(self, defects, contours, analyze_image, draw_image: np.ndarray):
         """Uses hull defects to count the nmber of fingers outside of the palm."""
 
         if defects is not None:
@@ -165,7 +197,7 @@ class Extractor:
                         biggest_row = _row
                         maximum = no_of_black_pixels
 
-            # print("line: " + str(y), ": ", blackPixels)
+                    # print("line: " + str(y), ": ", blackPixels)
         print(Colors.orange + "row with most white: ", biggest_row, "with ", maximum)
         # return int value of the row containing the most white pixels
         return biggest_row
