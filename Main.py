@@ -2,33 +2,36 @@ from os import name
 from numpy.core.defchararray import index
 
 from numpy.core.overrides import verify_matching_signatures
-from Hand import Finger, FingerState, Hand
+from numpy.lib.type_check import imag
+from Hand import DataCanvas, Finger, FingerName, FingerState, Hand
 import cv2 as cv
 import numpy as np
-from Image import Image, ImageVersion
+from Image import Visualisation, ImageVersion
 import Colors
 from PreProcessor import PreProcessor
 from Extractor import Extractor
 
-images = []
+steps = []
 
 def print_images():
     print(Colors.green + "current content of images:")
-    for image in images:
+    for image in steps:
         print(Colors.green + image.name, ", ", image.version, "" + Colors.white)
 
+
 def get_version(version: ImageVersion):
-    image_to_return: Image
-    for image in images:
+    image_to_return: Visualisation
+    for image in steps:
         if image.version == version:
             image_to_return = image
     return image_to_return
+
 
 def main():
     # TODO I think I might be loading the image both as a separate image and through the hand class
 
     # load an image as the original image
-    IMAGE_ORIGINAL = Image(
+    IMAGE_ORIGINAL = Visualisation(
         name="original image", 
         img_array=cv.imread("reference/wSign2.jpg"), 
         version=ImageVersion.ORIGINAL
@@ -36,11 +39,26 @@ def main():
 
     img_size: tuple = IMAGE_ORIGINAL.img_array.shape
 
-    images.append(IMAGE_ORIGINAL)
+    steps.append(IMAGE_ORIGINAL)
 
-    # instantiate a hand from that image
-    hand = Hand()
-
+    # instantiate a hand to eventually fill with data
+    hand = Hand(
+        height=None, 
+        width=None, 
+        center=None, 
+        orientation=None, 
+        index_finger=Finger(FingerName.INDEX_FINGER),
+        middle_finger=Finger(FingerName.MIDDLE_FINGER),
+        ring_finger=Finger(FingerName.RING_FINGER),
+        little_finger=Finger(FingerName.LITTLE_FINGER),
+        thumb_finger=Finger(FingerName.THUMB_FINGER),
+        contours=None, 
+        convex_hull=None, 
+        finger_tips=None, 
+        finger_vallies=None,
+        data_canvas=DataCanvas()
+    )
+    # set the size of the data canvas to be the size of the image.
     hand.data_canvas.set_size(
         (
             IMAGE_ORIGINAL.img_array.shape[0], 
@@ -51,7 +69,7 @@ def main():
     extractor = Extractor()
 
     # PRODUCING THE IMAGES
-    IMAGE_BLURRED = Image(
+    IMAGE_BLURRED = Visualisation(
         name="blurred with gaussian blur",
         img_array=(
             preprocesser.blur_gaussian(
@@ -62,9 +80,9 @@ def main():
         ),
         version=ImageVersion.BLURRED
     )
-    images.append(IMAGE_BLURRED)
+    steps.append(IMAGE_BLURRED)
 
-    IMAGE_GRAYSCALED = Image(
+    IMAGE_GRAYSCALED = Visualisation(
         name="grayscaled image",
         img_array=preprocesser.gray_scale(
             image=get_version(
@@ -72,9 +90,9 @@ def main():
         version=ImageVersion.GRAYSCALED
     )
     # TODO should add to images atomatically when instantiating
-    images.append(IMAGE_GRAYSCALED)
+    steps.append(IMAGE_GRAYSCALED)
 
-    IMAGE_THRESHOLDED = Image(
+    IMAGE_THRESHOLDED = Visualisation(
         name="binarized image",
         img_array=preprocesser.binarize(
             image=get_version(
@@ -84,7 +102,7 @@ def main():
         ),
         version=ImageVersion.BINARIZED 
     )
-    images.append(IMAGE_THRESHOLDED)
+    steps.append(IMAGE_THRESHOLDED)
 
     
     contours, _ = cv.findContours(
@@ -95,9 +113,11 @@ def main():
         method=cv.CHAIN_APPROX_SIMPLE
     )
     hand.contours = contours
+    # AT THIS POINT WE START ADDING DATA TO THE DATACANVAS
+    cv.drawContours(hand.data_canvas.canvas, hand.contours, -1, (255, 255, 255), 3)
 
     # TODO this should take the contours from just above.
-    IMAGE_CONTOURED = Image(
+    IMAGE_CONTOURED = Visualisation(
         name="contoured image",
         # pretty sure we can grab the contours from jus above
         img_array=cv.drawContours(
@@ -109,7 +129,7 @@ def main():
         ),
         version=ImageVersion.CONTOURED
     )
-    images.append(IMAGE_CONTOURED)
+    steps.append(IMAGE_CONTOURED)
 
         # Find the convex hull object for each contour
     hull_list = []
@@ -123,12 +143,14 @@ def main():
     
     hand.convex_hull = hull_list
 
-    IMAGE_HULL = Image(
+    cv.drawContours(hand.data_canvas.canvas, hand.convex_hull, -1, (255, 0, 0), 3)
+
+    IMAGE_HULL = Visualisation(
         name="image with convex hull",
         img_array=hull_canvas,
         version=ImageVersion.WITH_HULL
     )
-    images.append(IMAGE_HULL)
+    steps.append(IMAGE_HULL)
 
 
     defects = extractor.extract_defects(
@@ -136,26 +158,34 @@ def main():
     )
     print("defects: \n", defects) # yay
 
-    IMAGE_DEFECTS = np.zeros(img_size)
+    defects_image = np.zeros(img_size)
     extractor.draw_defects(
         defects=defects, 
         cnt=contours[0], 
-        output_image=IMAGE_DEFECTS
+        output_image=defects_image
     )
-    cv.imshow("showing defects: ", IMAGE_DEFECTS)
 
+
+    IMAGE_WITH_DEFECTS = extractor.draw_defects(
+            defects=defects, 
+            cnt=contours[0], 
+            output_image=hand.data_canvas.canvas
+    )
+    cv.imshow("showing defects: ", defects_image)
+    # steps.append(IMAGE_WITH_DEFECTS)
 
     #showing all the current versions
-    for image in images:
-        print("image version: ", image.name)
-        image.imshow()
+    for step in steps:
+        print("image version: ", step.name)
+        step.display()
 
 
     hand.imshow_data_canvas()
     # hand.old_compare_to_database()
 
 
-    hand.imshow_data_canvas()
+    # hand.imshow_data_canvas()
+    cv.imshow("data canvas", hand.data_canvas.canvas)
     cv.waitKey(0)
     cv.destroyAllWindows()
 

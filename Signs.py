@@ -1,5 +1,5 @@
 from Hand import Hand, Finger, FingerName, FingerState
-from Image import Image, ImageVersion
+from Visualisation import Visualisation, ImageVersion
 import cv2 as cv
 # hole in shape: O
 # noOfFingersout:
@@ -20,7 +20,7 @@ import cv2 as cv
 # excluding J and Z because they are not static
 
 hand_a = Hand.Hand(
-    image=Image(
+    image=Visualisation(
         name="a", 
         img_array=cv.imread(
             "reference/A1008.jpg"
@@ -35,7 +35,7 @@ hand_a.little_finger.set_finger_state(FingerState.IN)
 hand_a.thumb_finger.set_finger_state(FingerState.OUT)
 
 hand_f = Hand(
-    image=Image(
+    image=Visualisation(
         name="f", 
         img_array=cv.imread(
             "reference/F1001.jpg"
@@ -51,7 +51,7 @@ hand_f.thumb_finger.set_finger_state(FingerState.TOUCHING_INDEX)
 
 
 hand_w = Hand(
-    image=Image(
+    image=Visualisation(
         name="W", 
         img_array=cv.imread(
             "reference/Wsign2"

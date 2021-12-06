@@ -9,21 +9,21 @@ from numpy.lib.histograms import _histogram_bin_edges_dispatcher
 import math
 import Colors
 from Hand import Hand
-from Image import Image
+from Image import Visualisation
 
 class PreProcessor:
 
-    def __init__(self, image: Image) -> None:
+    def __init__(self, image: Visualisation) -> None:
         self.processing_image = image.img_array
         self.canvas = np.zeros((self.processing_image.shape[0], self.processing_image.shape[1]))
     
 
-    def gray_scale(self, image: Image):
+    def gray_scale(self, image: Visualisation):
         """Method for grayscaling an image. Returns the grayscaled image"""
         return cv.cvtColor(image.img_array, cv.COLOR_BGR2GRAY)
 
 
-    def blur_gaussian(self, image: Image):
+    def blur_gaussian(self, image: Visualisation):
         output_image = cv.GaussianBlur(
             image.img_array, 
             [7, 7], cv.BORDER_DEFAULT)
@@ -35,7 +35,7 @@ class PreProcessor:
         # https://learnopencv.com/otsu-thresholding-with-opencv/
 
 
-    def binarize(self, image: Image, threshold: int):
+    def binarize(self, image: Visualisation, threshold: int):
         th, thresh = cv.threshold(
             src=image.img_array, 
             thresh=threshold, 

@@ -17,15 +17,20 @@ class ImageVersion(Enum):
     REFERENCE = auto()
     # add more
 
-class Image:
+class Visualisation:
     name: str
-    img_array: np.array
+    img_array: np.ndarray
     version: ImageVersion
+
 
     def __init__(self, name: str, img_array: np.array, version: ImageVersion) -> None:
         self.name = name
         self.img_array = img_array
         self.version = version
 
-    def imshow(self):
-        cv.imshow(str(self.version), self.img_array)
+
+    def display(self):
+        cv.imshow(
+            winname=str(self.version), 
+            mat=self.img_array
+        )

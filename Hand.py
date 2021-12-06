@@ -66,25 +66,32 @@ class DataCanvas:
     """A blank canvas able to draw on it self"""
     canvas: np.array
 
+
     def __init__(self) -> None:
         self.canvas = np.zeros((0, 0))
     
+
     def get_size(self):
         return (self.canvas.shape[0], self.canvas.shape[1])
     
+
     def set_size(self,size: tuple):
         self.canvas = np.zeros(size)
 
+
     def add_contours(self, contours: list) -> None:
-        cv.drawContours(self.canvas, contours, -1, Colors.contours_color, 1)
+        cv.drawContours(self.canvas, contours, -1, Colors.contours_color, 3)
     
+
     def add_finger_point(self, coordinate: tuple) -> None:
         # TODO write the name of the finger on the canvas
         cv.circle(self.canvas, coordinate, 2, Colors.fingertip_color, -1)
 
+
     def add_center_point(self, center_point: tuple) -> None:
         # TODO write on the image
         cv.circle(self.canvas, center_point, 2, Colors.center_color, -1)
+
 
     def add_hull(self, hull) -> None:
         cv.drawContours(
@@ -95,10 +102,11 @@ class DataCanvas:
             thickness=1
         )
 
+
     def add_defects(self, defects) -> None:
-        pass
+        raise NotImplementedError
 
-
+@dataclass
 class Hand:
     """Generic class containing all the data that the hand should contain."""
     
@@ -117,32 +125,7 @@ class Hand:
     convex_hull: list
     finger_tips: list
     finger_vallies: list
-
-    def __init__(self) -> None:
-        self.width = None
-        self.height = None
-        self.orientation = None
-        self.center = None
-
-        # self.extraction_image: Image.Image = image
-        
-        self.data_canvas = DataCanvas()
-
-        # data to be extracted from the image
-        self.index_finger = Finger(FingerName.INDEX_FINGER)
-        self.middle_finger = Finger(FingerName.MIDDLE_FINGER)
-        self.ring_finger = Finger(FingerName.RING_FINGER)
-        self.little_finger = Finger(FingerName.LITTLE_FINGER)
-        self.thumb_finger = Finger(FingerName.THUMB_FINGER)
-        
-        self.fingers: list = [
-            self.index_finger, 
-            self.middle_finger, 
-            self.ring_finger, 
-            self.little_finger, 
-            self.thumb_finger
-        ]
-        
+    data_canvas: DataCanvas
 
     def print_finger_states(self) -> None:
         for finger in self.fingers:
@@ -166,18 +149,22 @@ class Hand:
         print("contours: ", len(self.contours))
         self.print_finger_states()
 
+
     # TODO implement
     def confirm_orientation(self):
         raise NotImplementedError()
+
 
     #TODO implement
     def confirm_finger_states(self):
         raise NotImplementedError()
 
+
     # TODO implement
     def compare_to_database(self):
         self.confirm_orientation()
         self.confirm_finger_states()
+
 
     def old_compare_to_database(self) -> None:
         # compare number of fingers

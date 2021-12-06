@@ -33,7 +33,7 @@ elif args.handpose == "p":
 
 img_grayscaled = PreProcessing.grayScale(image)
 
-img_blurred = PreProcessing.blur_gaussian(np.array(img_grayscaled), 5)
+img_blurred = PreProcessing.old_blur_gaussian(np.array(img_grayscaled), 5)
 
 # th = threshold value, img_thresholded is the image as an array
 th, img_thresholded = cv.threshold(img_grayscaled, 120, 255, cv.THRESH_BINARY)  # TODO make own thresholder
