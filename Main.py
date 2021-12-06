@@ -6,7 +6,7 @@ from numpy.lib.type_check import imag
 from Hand import DataCanvas, Finger, FingerName, FingerState, Hand
 import cv2 as cv
 import numpy as np
-from Image import Visualisation, ImageVersion
+from Image import Image, ImageVersion
 import Colors
 from PreProcessor import PreProcessor
 from Extractor import Extractor
@@ -20,7 +20,7 @@ def print_images():
 
 
 def get_version(version: ImageVersion):
-    image_to_return: Visualisation
+    image_to_return: Image
     for image in steps:
         if image.version == version:
             image_to_return = image
@@ -31,7 +31,7 @@ def main():
     # TODO I think I might be loading the image both as a separate image and through the hand class
 
     # load an image as the original image
-    IMAGE_ORIGINAL = Visualisation(
+    IMAGE_ORIGINAL = Image(
         name="original image", 
         img_array=cv.imread("reference/wSign2.jpg"), 
         version=ImageVersion.ORIGINAL
@@ -53,7 +53,7 @@ def main():
         little_finger=Finger(FingerName.LITTLE_FINGER),
         thumb_finger=Finger(FingerName.THUMB_FINGER),
         contours=None, 
-        convex_hull=None, 
+        hull=None, 
         finger_tips=None, 
         finger_vallies=None,
         data_canvas=DataCanvas()
@@ -69,7 +69,7 @@ def main():
     extractor = Extractor()
 
     # PRODUCING THE IMAGES
-    IMAGE_BLURRED = Visualisation(
+    IMAGE_BLURRED = Image(
         name="blurred with gaussian blur",
         img_array=(
             preprocesser.blur_gaussian(
@@ -82,7 +82,7 @@ def main():
     )
     steps.append(IMAGE_BLURRED)
 
-    IMAGE_GRAYSCALED = Visualisation(
+    IMAGE_GRAYSCALED = Image(
         name="grayscaled image",
         img_array=preprocesser.gray_scale(
             image=get_version(
@@ -92,7 +92,7 @@ def main():
     # TODO should add to images atomatically when instantiating
     steps.append(IMAGE_GRAYSCALED)
 
-    IMAGE_THRESHOLDED = Visualisation(
+    IMAGE_THRESHOLDED = Image(
         name="binarized image",
         img_array=preprocesser.binarize(
             image=get_version(
@@ -117,7 +117,7 @@ def main():
     cv.drawContours(hand.data_canvas.canvas, hand.contours, -1, (255, 255, 255), 3)
 
     # TODO this should take the contours from just above.
-    IMAGE_CONTOURED = Visualisation(
+    IMAGE_CONTOURED = Image(
         name="contoured image",
         # pretty sure we can grab the contours from jus above
         img_array=cv.drawContours(
@@ -141,11 +141,11 @@ def main():
     for i in range(len(contours)):
         cv.drawContours(hull_canvas, hull_list, i, Colors.hull_color)
     
-    hand.convex_hull = hull_list
+    hand.hull = hull_list
 
-    cv.drawContours(hand.data_canvas.canvas, hand.convex_hull, -1, (255, 0, 0), 3)
+    cv.drawContours(hand.data_canvas.canvas, hand.hull, -1, (255, 0, 0), 3)
 
-    IMAGE_HULL = Visualisation(
+    IMAGE_HULL = Image(
         name="image with convex hull",
         img_array=hull_canvas,
         version=ImageVersion.WITH_HULL

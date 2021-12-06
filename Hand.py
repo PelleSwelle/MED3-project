@@ -32,6 +32,18 @@ class FingerName(Enum):
     LITTLE_FINGER = auto()
     THUMB_FINGER = auto()
 
+@dataclass
+class Hull:
+    points: np.ndarray
+    line_color: tuple
+    point_color: tuple
+
+    def display_points(self):
+        raise NotImplementedError
+
+    def display_points(self):
+        raise NotImplementedError
+
 
 class Finger:
     """Generic class for each finger on the hand."""
@@ -121,8 +133,8 @@ class Hand:
     little_finger: Finger
     thumb_finger: Finger
 
-    contours: tuple
-    convex_hull: list
+    contours: list
+    hull: Hull
     finger_tips: list
     finger_vallies: list
     data_canvas: DataCanvas

@@ -9,33 +9,32 @@ from numpy.lib.histograms import _histogram_bin_edges_dispatcher
 import math
 import Colors
 from Hand import Hand
-from Image import Visualisation
+from Image import Image
 
 class PreProcessor:
 
-    def __init__(self, image: Visualisation) -> None:
+    def __init__(self, image: Image) -> None:
         self.processing_image = image.img_array
         self.canvas = np.zeros((self.processing_image.shape[0], self.processing_image.shape[1]))
     
 
-    def gray_scale(self, image: Visualisation):
+    def gray_scale(self, image: Image) -> np.ndarray: 
         """Method for grayscaling an image. Returns the grayscaled image"""
         return cv.cvtColor(image.img_array, cv.COLOR_BGR2GRAY)
 
 
-    def blur_gaussian(self, image: Visualisation):
+    def blur_gaussian(self, image: Image) -> np.ndarray:
         output_image = cv.GaussianBlur(
             image.img_array, 
             [7, 7], cv.BORDER_DEFAULT)
         return output_image
 
-
     # TODO this is used to calculate the correct threshold for the otsu algorithm
-    # def calculate_threshold():
+    # def calculate_threshold() -> int?:
         # https://learnopencv.com/otsu-thresholding-with-opencv/
 
 
-    def binarize(self, image: Visualisation, threshold: int):
+    def binarize(self, image: Image, threshold: int) -> np.ndarray:
         th, thresh = cv.threshold(
             src=image.img_array, 
             thresh=threshold, 

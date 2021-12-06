@@ -17,7 +17,7 @@ class ImageVersion(Enum):
     REFERENCE = auto()
     # add more
 
-class Visualisation:
+class Image:
     name: str
     img_array: np.ndarray
     version: ImageVersion

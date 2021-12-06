@@ -40,7 +40,7 @@ class Extractor:
         return self.canvas
 
 
-    def extract_convex_hull(self, contours: list) -> list:
+    def extract_hull(self, contours: list) -> list:
         hull = []
 
         # calculate points for each contour
@@ -128,6 +128,7 @@ class Extractor:
                 color=(100, 100, 100)
             )
 
+
     def get_number_of_fingers(self, defects, contours, analyze_image, draw_image: np.ndarray):
         """Uses hull defects to count the nmber of fingers outside of the palm."""
 
@@ -177,6 +178,7 @@ class Extractor:
 
         # cv.putText(draw_image, str(cnt), (0, 50), cv.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv.LINE_AA)
         return defects
+
 
     def get_top_of_palm(img: np.ndarray, contours: np.ndarray):
         """Takes the image and the contours of the hand, sees"""
