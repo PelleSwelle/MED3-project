@@ -11,6 +11,7 @@ import Colors
 from Hand import Hand
 from Image import Image
 
+# TODO this should be an interface
 class PreProcessor:
 
     def __init__(self, image: Image) -> None:
@@ -43,3 +44,4 @@ class PreProcessor:
         )
         inverted = cv.bitwise_not(thresh)
         return inverted
+    

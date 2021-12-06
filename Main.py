@@ -1,15 +1,13 @@
-from os import name
-from numpy.core.defchararray import index
-
-from numpy.core.overrides import verify_matching_signatures
-from numpy.lib.type_check import imag
-from Hand import DataCanvas, Finger, FingerName, FingerState, Hand
 import cv2 as cv
 import numpy as np
-from Image import Image, ImageVersion
+from numpy.lib.type_check import imag
+
 import Colors
-from PreProcessor import PreProcessor
 from Extractor import Extractor
+from Hand import DataCanvas, Finger, FingerName, FingerState, Hand
+from Image import Image, ImageVersion
+from PreProcessor import PreProcessor
+from pynput.keyboard import Key, Listener
 
 steps = []
 
@@ -171,13 +169,13 @@ def main():
             cnt=contours[0], 
             output_image=hand.data_canvas.canvas
     )
-    cv.imshow("showing defects: ", defects_image)
+    # cv.imshow("showing defects: ", defects_image)
     # steps.append(IMAGE_WITH_DEFECTS)
 
     #showing all the current versions
-    for step in steps:
-        print("image version: ", step.name)
-        step.display()
+    # for step in steps:
+    #     print("image version: ", step.name)
+    #     step.display()
 
 
     hand.imshow_data_canvas()

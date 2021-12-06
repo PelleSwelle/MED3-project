@@ -34,3 +34,9 @@ class Image:
             winname=str(self.version), 
             mat=self.img_array
         )
+
+    # def process_image(self):
+        # grayscale
+        # apply gaussian blur
+        # binarize
+        # contour
