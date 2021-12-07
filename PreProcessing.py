@@ -4,26 +4,28 @@ from copy import copy
 from PIL import Image
 import math
 
-detector = cv.SimpleBlobDetector_create()
 
-
-def binarize(src):
+def binarize(src: np.ndarray):
     grayScaleImg = cv.cvtColor(src, cv.COLOR_BGR2GRAY)
 
     th, otsuThresh = cv.threshold(grayScaleImg, 128, 192, cv.THRESH_OTSU)
-    # otsuThreshInverted = cv.bitwise_not(otsuThresh)
-    # keypoints = detector.detect(otsuThresh)
-
-    # im_with_keypoints = cv.drawKeypoints(otsuThresh, keypoints, np.array([]), (0, 0, 255),
-    # cv.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
 
     return otsuThresh
 
-def grayScale(src):
-    pxls = src.load()  # load the pixel data from the image
-    height, width = src.size  # get the size of the image
 
-    img_grayscaled = Image.new(src.mode, src.size)  # make a canvas to hold the new picture
+def convertToSingleChannel(img: Image):
+    singleChannel = img
+    if len(img.split()) == 3:
+        singleChannel = img.convert('L')  # convert to single channel
+        print("converted to single channel")
+    return singleChannel
+
+
+def grayScale(img: Image):
+    pxls = img.load()  # load the pixel data from the image
+    height, width = img.size  # get the size of the image
+
+    img_grayscaled = Image.new(img.mode, img.size)  # make a canvas to hold the new picture
 
     for row in range(0, height):
         for column in range(0, width):
@@ -35,42 +37,51 @@ def grayScale(src):
 
     result = np.array(img_grayscaled)
     return result
+    # this should add to the list of versions in the hand
 
-def blur_gaussian(_src, _kernel):
-    if _kernel == 3:
-        kernel = np.array([[1, 2, 1],
-                              [2, 4, 2],
-                              [1, 2, 1]])
-    elif _kernel == 5:
-        kernel = np.array([[1,  4,  6,  4, 1],
-                           [4, 16, 26, 16, 4],
-                           [6, 26, 43, 26, 6],
-                           [4, 16, 26, 16, 4],
-                           [1,  4,  6,  4, 1]])
-    # check color channels
-    imageArray = copy(_src)
-    image = Image.fromarray(_src)
-    noOfChannels = len(image.split())
 
-    if noOfChannels == 3:
-        singleChannel = image.convert('L')  # convert to single channel
-        image = singleChannel
-        print("converted from ", noOfChannels, " to ", len(singleChannel.split()), " channels before applying gaussian blur")
+def invertColor(img: Image):
+    threshold: int = 100
+    width, height = img.size  # get the size of the image
+    for x in range(0, width):
+        for y in range(0, height):
+            if img.getpixel((x, y)) <= threshold:
+                img.putpixel((x, y), 255)
+            elif img.getpixel((x, y)) >= threshold:
+                img.putpixel((x, y), 0)
+    return img
+
+
+def downSize(array: np.ndarray, scale: float):
+    array = np.array(array)
+    scaled_f_down = cv.resize(array, None, fx=scale, fy=scale, interpolation=cv.INTER_LINEAR)
+    return Image.fromarray(scaled_f_down)
+
+
+def old_blur_gaussian(array: np.ndarray):
+
+    kernel = np.array([[1, 4, 6, 4, 1],
+                       [4, 16, 26, 16, 4],
+                       [6, 26, 43, 26, 6],
+                       [4, 16, 26, 16, 4],
+                       [1, 4, 6, 4, 1]])
 
     kernelSum = np.sum(kernel)
 
-    for y in range(2, imageArray.shape[0] - 2):
-        for x in range(2, imageArray.shape[1] - 2):
-            for c in range(imageArray.shape[2]):
+    for y in range(2, array.shape[0] - 2):
+        for x in range(2, array.shape[1] - 2):
+            for c in range(array.shape[2]):
                 sum = 0
                 for kernel_x in range(5):
                     for kernel_y in range(5):
-                        sum += imageArray[y + kernel_x - 2, x + kernel_y - 2, c] * kernel[kernel_x, kernel_y]
-                imageArray[y, x, c] = sum / kernelSum
+                        sum += array[y + kernel_x - 2, x + kernel_y - 2, c] * kernel[kernel_x, kernel_y]
+                array[y, x, c] = sum / kernelSum
 
-    return imageArray
+    return array
 
-def threshold_otsu(image, nbins = 0.1):
+
+# TODO this is the homemade thresholding function currently not implemented
+def threshold_otsu(image, nbins=0.1):
     # validate grayscale
     if len(image.shape) == 1:
         print("threshold algorithm received a one-channel image")
@@ -106,6 +117,7 @@ def threshold_otsu(image, nbins = 0.1):
 
     return least_variance_threshold
 
+
 def removeOtherStuff(src):
     # TODO check format of image
     img = Image.fromarray(src)
@@ -120,6 +132,14 @@ def removeOtherStuff(src):
                 print("demo")
                 # img_isolated.putpixel((row, column), 0)
 
-
     result = np.array(img_isolated)
     return result
+
+
+# def detectCenter(src):
+#     # img = Image.fromarray(src)
+#     findBroadestX(src)
+#     centerX = 50
+#     centerY = 50
+#     imageCircled = cv.circle(src, (centerX, centerY), 1, (0, 0, 255), 2)
+#     return imageCircled
