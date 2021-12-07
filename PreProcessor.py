@@ -45,3 +45,5 @@ class PreProcessor:
         inverted = cv.bitwise_not(thresh)
         return inverted
     
+    def crop(self, image: Image):
+        raise NotImplementedError

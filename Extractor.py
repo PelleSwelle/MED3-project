@@ -92,7 +92,7 @@ class Extractor:
         # returns an array containing the convexity defects as output
         # start point, endpoint, farthest point, approximate distance to the farthest point
         
-        print("get_defects: defects type: ", type(defects))
+        # print("get_defects: defects type: ", type(defects))
         return defects
 
 
@@ -119,14 +119,14 @@ class Extractor:
             # cv.line(output_image,start,end,[0,255,0],2)
             # cv.circle(output_image,far,5,[0,0,255],-1)
             cv.circle(points_canvas,far,5,[0,0,255],-1)
-            cv.putText(
-                img=output_image, 
-                text="end", 
-                org=end, 
-                fontFace=cv.FONT_HERSHEY_SIMPLEX, 
-                fontScale=1, 
-                color=(100, 100, 100)
-            )
+            # cv.putText(
+            #     img=output_image, 
+            #     text="end", 
+            #     org=end, 
+            #     fontFace=cv.FONT_HERSHEY_SIMPLEX, 
+            #     fontScale=1, 
+            #     color=(100, 100, 100)
+            # )
 
 
     def get_number_of_fingers(self, defects, contours, analyze_image, draw_image: np.ndarray):

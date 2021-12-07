@@ -44,30 +44,16 @@ class Hull:
     def display_points(self):
         raise NotImplementedError
 
-
+@dataclass
 class Finger:
     """
     Generic class for each finger on the hand. 
     Instatiates with the state set to not set. 
     """
     name: FingerName
-    state: FingerState
+    fingertip_position: tuple = (None, None)
 
-    fingertip_position: tuple
-
-    def __init__(self, name: FingerName) -> None:
-        self.name = name
-        self.state = FingerState.NOT_DECIDED
-        self.fingertip_position = None
-
-    def get_state(self) -> FingerState:
-        return self.state
-
-    def set_finger_state(self, state:FingerState) -> None:
-        self.state = state
-
-    def set_finger_tip_position(self, position: tuple) -> None:
-        self.fingertip_position = position
+    state: FingerState = FingerState.NOT_DECIDED
 
 
 class Orientation(Enum):
@@ -125,8 +111,6 @@ class DataCanvas:
 class Hand:
     """Generic class containing all the data that the hand should contain."""
     
-    height: int
-    width: int
     center: tuple
     orientation: Orientation
     
@@ -138,13 +122,14 @@ class Hand:
 
     contours: list
     hull: Hull
-    finger_tips: list
-    finger_vallies: list
+    defects: list
     data_canvas: DataCanvas
 
-    def print_finger_states(self) -> None:
-        for finger in self.fingers:
-            print(Colors.blue + "", finger.name, ", ", finger.state, "" +Colors.white)
+    # TODO this could be a dict
+    thumb_index_valley: tuple
+    index_middle_valley: tuple
+    middle_ring_valley: tuple
+    ring_little_valley: tuple
 
 
     def imshow_data_canvas(self) -> None:
@@ -156,13 +141,20 @@ class Hand:
             cv.imshow(version, version.img)
 
 
-    def print_hand(self) -> None:
-        print("height: ", self.height)
-        print("width: ",self.width)
+    def print_data(self) -> None:
+        print("************ HAND DATA *************")
         print("center: ", self.center)
         print("orientation: ", self.orientation)
-        print("contours: ", len(self.contours))
-        self.print_finger_states()
+        # print("contours: ", len(self.contours))
+        print("defects: ", self.defects)
+        # print("hull: ", len(self.hull))
+        print("vallies")
+        print(f"Finger: {self.index_finger.get_state()}")
+        print(f"Finger: {self.middle_finger.get_state()}")
+        print(f"Finger: {self.ring_finger.get_state()}")
+        print(f"Finger: {self.little_finger.get_state()}")
+        print(f"Finger: {self.thumb_finger.get_state()}")
+        print("**************************************")
 
 
     # TODO implement
@@ -181,7 +173,7 @@ class Hand:
         self.confirm_finger_states()
 
 
-    def old_compare_to_database(self) -> None:
+    # def old_compare_to_database(self) -> None:
         # compare number of fingers
         no_of_fingers_not_decided = 0
         no_of_fingers_in = 0
