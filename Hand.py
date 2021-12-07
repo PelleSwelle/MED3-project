@@ -46,7 +46,10 @@ class Hull:
 
 
 class Finger:
-    """Generic class for each finger on the hand."""
+    """
+    Generic class for each finger on the hand. 
+    Instatiates with the state set to not set. 
+    """
     name: FingerName
     state: FingerState
 
