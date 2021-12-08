@@ -11,8 +11,9 @@ import math
 import Colors
 import Draw
 import Image
+from typing import Tuple
 
-class FingerState(Enum):
+class state(Enum):
     """states that a finger can be in"""
     IN = auto()
     OUT = auto()
@@ -25,7 +26,7 @@ class FingerState(Enum):
     TOUCHING_LITTLE = auto()
 
 
-class FingerName(Enum):
+class Name(Enum):
     INDEX_FINGER = auto()
     MIDDLE_FINGER = auto()
     RING_FINGER = auto()
@@ -50,10 +51,10 @@ class Finger:
     Generic class for each finger on the hand. 
     Instatiates with the state set to not set. 
     """
-    name: FingerName
-    fingertip_position: tuple = (None, None)
+    name: Name
+    position: tuple = (-1, -1)
 
-    state: FingerState = FingerState.NOT_DECIDED
+    state: state = state.NOT_DECIDED
 
 
 class Orientation(Enum):
@@ -63,97 +64,53 @@ class Orientation(Enum):
     FINGERS_RIGHT = auto()
 
 
-class DataCanvas:
-    """A blank canvas able to draw on it self"""
-    canvas: np.array
-
-
-    def __init__(self) -> None:
-        self.canvas = np.zeros((0, 0))
-    
-
-    def get_size(self):
-        return (self.canvas.shape[0], self.canvas.shape[1])
-    
-
-    def set_size(self,size: tuple):
-        self.canvas = np.zeros(size)
-
-
-    def add_contours(self, contours: list) -> None:
-        cv.drawContours(self.canvas, contours, -1, Colors.contours_color, 3)
-    
-
-    def add_finger_point(self, coordinate: tuple) -> None:
-        # TODO write the name of the finger on the canvas
-        cv.circle(self.canvas, coordinate, 2, Colors.fingertip_color, -1)
-
-
-    def add_center_point(self, center_point: tuple) -> None:
-        # TODO write on the image
-        cv.circle(self.canvas, center_point, 2, Colors.center_color, -1)
-
-
-    def add_hull(self, hull) -> None:
-        cv.drawContours(
-            image=self.canvas, 
-            contours=hull, 
-            contourIdx=-1, 
-            color=Colors.hull_color, 
-            thickness=1
-        )
-
-
-    def add_defects(self, defects) -> None:
-        raise NotImplementedError
-
 @dataclass
 class Hand:
     """Generic class containing all the data that the hand should contain."""
     
-    center: tuple
     orientation: Orientation
-    
-    index_finger: Finger
-    middle_finger: Finger
-    ring_finger: Finger
-    little_finger: Finger
-    thumb_finger: Finger
 
-    contours: list
+
+    contour_points: list
     hull: Hull
     defects: list
-    data_canvas: DataCanvas
+    
 
     # TODO this could be a dict
-    thumb_index_valley: tuple
-    index_middle_valley: tuple
-    middle_ring_valley: tuple
-    ring_little_valley: tuple
+    thumb_index_valley: tuple = (-1, -1)
+    index_middle_valley: tuple = (-1, -1)
+    middle_ring_valley: tuple = (-1, -1)
+    ring_little_valley: tuple = (-1, -1)
+
+    index: Finger = Finger(Name.INDEX_FINGER)
+    middle: Finger = Finger(Name.MIDDLE_FINGER)
+    ring: Finger = Finger(Name.RING_FINGER)
+    little: Finger = Finger(Name.LITTLE_FINGER)
+    thumb: Finger = Finger(Name.THUMB_FINGER)
+     
+    width: int = 1
+    height: int = 1
+    data_canvas: np.ndarray = np.zeros((width, height))
+    center: tuple = (-1, -1)
 
 
     def imshow_data_canvas(self) -> None:
-        cv.imshow("data extracted", self.data_canvas.canvas)
-
-
-    def imshow_all_versions(self) -> None:
-        for version in self.versions:
-            cv.imshow(version, version.img)
+        cv.imshow(winname="data extracted", mat=self.data_canvas)
 
 
     def print_data(self) -> None:
         print("************ HAND DATA *************")
         print("center: ", self.center)
         print("orientation: ", self.orientation)
-        # print("contours: ", len(self.contours))
+        print("contours: ", len(self.contour_points))
         print("defects: ", self.defects)
         # print("hull: ", len(self.hull))
         print("vallies")
-        print(f"Finger: {self.index_finger.get_state()}")
-        print(f"Finger: {self.middle_finger.get_state()}")
-        print(f"Finger: {self.ring_finger.get_state()}")
-        print(f"Finger: {self.little_finger.get_state()}")
-        print(f"Finger: {self.thumb_finger.get_state()}")
+        print(f"Finger: {self.index.state}")
+        print(f"Finger: {self.middle.state}")
+        print(f"Finger: {self.ring.state}")
+        print(f"Finger: {self.little.state}")
+        print(f"Finger: {self.thumb.state}")
         print("**************************************")
 
 
@@ -180,16 +137,16 @@ class Hand:
         no_of_fingers_out = 0
 
         for finger in self.fingers:
-            if finger.get_state() == FingerState.NOT_DECIDED:
+            if finger.get_state() == state.NOT_DECIDED:
                 no_of_fingers_not_decided +=1        
-            elif finger.get_state() == FingerState.OUT:
+            elif finger.get_state() == state.OUT:
                 no_of_fingers_out += 1
-            elif finger.get_state() == FingerState.IN:
+            elif finger.get_state() == state.IN:
                 no_of_fingers_in += 1
             
-            if finger.get_state != FingerState.NOT_DECIDED:
+            if finger.get_state != state.NOT_DECIDED:
                 print("we know that...")
-                if finger.get_state == FingerState.OUT:
+                if finger.get_state == state.OUT:
                     print(finger.name, ": ", finger.get_state())
         
         print(no_of_fingers_not_decided, " are undecided")

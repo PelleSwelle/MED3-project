@@ -46,4 +46,5 @@ class PreProcessor:
         return inverted
     
     def crop(self, image: Image):
+        # TODO set a standard size to make it into
         raise NotImplementedError

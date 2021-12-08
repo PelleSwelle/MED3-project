@@ -9,6 +9,7 @@ class ImageVersion(Enum):
     GRAYSCALED = auto()
     BINARIZED = auto()
     CONTOURED = auto()
+    CROPPED = auto()
     WITH_HULL = auto()
     WITH_FINGERTIPS = auto()
     WITH_DEFECTS = auto()
@@ -31,7 +32,7 @@ class Image:
 
     def display(self):
         cv.imshow(
-            winname=str(self.version), 
+            winname=str(self.name),
             mat=self.img_array
         )
 

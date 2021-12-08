@@ -89,7 +89,7 @@ def main():
     
     # get lowest defect
 
-
+    
     cv.imshow("defects", array_original)
 
 

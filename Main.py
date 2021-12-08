@@ -4,10 +4,9 @@ from numpy.lib.type_check import imag
 
 import Colors
 from Extractor import Extractor
-from Hand import DataCanvas, Finger, FingerName, FingerState, Hand, Orientation
+from Hand import Finger, Name, state, Hand, Orientation
 from Image import Image, ImageVersion
 from PreProcessor import PreProcessor
-from pynput.keyboard import Key, Listener
 
 steps = []
 font = cv.FONT_HERSHEY_COMPLEX
@@ -24,6 +23,15 @@ def get_version(version: ImageVersion):
         if image.version == version:
             image_to_return = image
     return image_to_return
+
+# TODO DO THIS
+def get_list_of_coordinates_from_contours(contours):
+    list_of_coordinates = []
+    for numpy_point in contours[0]:
+        point = numpy_point.tolist()
+        x, y = point[0]
+        list_of_coordinates.append([x, y])
+    return list_of_coordinates
 
 
 def main():
@@ -46,51 +54,41 @@ def main():
     hand_w = Hand(
         center=(154, 316),
         orientation=Orientation.FINGERS_UP,
-        index_finger=Finger(FingerName.INDEX_FINGER),
-        middle_finger=Finger(FingerName.MIDDLE_FINGER),
-        ring_finger=Finger(FingerName.RING_FINGER),
-        little_finger=Finger(FingerName.LITTLE_FINGER),
-        thumb_finger=Finger(FingerName.THUMB_FINGER),
-        contours=None,
+        index=Finger(Name.INDEX_FINGER),
+        middle=Finger(Name.MIDDLE_FINGER),
+        ring=Finger(Name.RING_FINGER),
+        little=Finger(Name.LITTLE_FINGER),
+        thumb=Finger(Name.THUMB_FINGER),
+        contour_points=None,
         hull=None,
         defects=None,
-        data_canvas=DataCanvas(),
         thumb_index_valley=None,
         index_middle_valley=(100, 200),
         middle_ring_valley=(150, 200),
         ring_little_valley= (196, 226))
 
-    hand_w.index_finger.state = FingerState.OUT
-    hand_w.middle_finger.state = FingerState.OUT
-    hand_w.ring_finger.state = FingerState.OUT
-    hand_w.little_finger.state = FingerState.IN
-    hand_w.thumb_finger.state = FingerState.IN
+    hand_w.index.position = (11, 41)
+    hand_w.middle.position = (113, 0)
+    hand_w.ring.position = (222, 59)
+    hand_w.index.state = state.OUT
+    hand_w.middle.state = state.OUT
+    hand_w.ring.state = state.OUT
+    hand_w.little.state = state.IN
+    hand_w.thumb.state = state.IN
+    # cv.circle(hand_w.data_canvas, hand_w.center, 1, (255, 0, 0), 1)
 
 
     # instantiate a hand to eventually fill with data
     test_hand = Hand(
         center=None, 
         orientation=None, 
-        index_finger=Finger(FingerName.INDEX_FINGER),
-        middle_finger=Finger(FingerName.MIDDLE_FINGER),
-        ring_finger=Finger(FingerName.RING_FINGER),
-        little_finger=Finger(FingerName.LITTLE_FINGER),
-        thumb_finger=Finger(FingerName.THUMB_FINGER),
-        contours=None, 
+        contour_points=None, 
         hull=None, 
         defects=None,
-        data_canvas=DataCanvas(),
         thumb_index_valley=None,
         index_middle_valley=None,
         middle_ring_valley=None,
         ring_little_valley=None
-    )
-    # set the size of the data canvas to be the size of the image.
-    test_hand.data_canvas.set_size(
-        (
-            IMAGE_ORIGINAL.img_array.shape[0], 
-            IMAGE_ORIGINAL.img_array.shape[1]
-        )
     )
     
     
@@ -135,134 +133,165 @@ def main():
     )
     steps.append(IMAGE_THRESHOLDED)
 
+    
     # ************** FEATURE EXTRACTION ******************
     
-    contours, _ = cv.findContours(
+    cv_contours, _ = cv.findContours(
         image=get_version(
             version=ImageVersion.BINARIZED
         ).img_array,
         mode=cv.RETR_TREE,
         method=cv.CHAIN_APPROX_SIMPLE
     )
-    test_hand.contours = contours
 
-    print(f"contours data type: {type(contours)}")
-    # print(f"hand.contours:\n{test_hand.contours}")
-    
-    
+    IMAGE_CONTOURED = Image(
+        name="contoured image", 
+        img_array=cv.drawContours(
+            image=IMAGE_THRESHOLDED.img_array, 
+            contours=cv_contours, 
+            contourIdx= -1, 
+            color=(0, 0, 255), 
+            thickness=1
+        ), 
+        version=ImageVersion.CONTOURED 
+    )
 
-    # Going through every contours found in the image.
-    for cnt in test_hand.contours :
-    
-        approx = cv.approxPolyDP(cnt, 0.009 * cv.arcLength(cnt, True), True)
-
-        print(f"approx: {approx}")
-        # draws boundary of contours.
-        cv.drawContours(test_hand.data_canvas.canvas, [approx], 0, (0, 0, 255), 5) 
-    
-        # Used to flatten the array containing
-        # the coordinates of the vertices.
-        flattened = approx.ravel() 
-        print(f"flattened array: {flattened}")
-        i = 0
-    
-        for j in flattened:
-            if(i % 2 == 0):
-                # get coordinates of the contours
-                x = flattened[i]
-                y = flattened[i + 1]
-    
-                # String containing the co-ordinates.
-                string = str(x) + " " + str(y) 
-                coordinate: tuple = (x, y)
-
-                # the first pixel found vertically
-                if i == 0:
-                    # text on topmost co-ordinate.
-                    cv.putText(
-                        test_hand.data_canvas.canvas, 
-                        "Arrow tip", 
-                        (x, y),
-                        font, 0.5, 
-                        (255, 0, 0)) 
-                else:
-                    # text on remaining co-ordinates.
-                    cv.putText(
-                        test_hand.data_canvas.canvas, 
-                        str(coordinate), (x, y), 
-                        font, 2, 
-                        (0, 0, 255)) 
-            i = i + 1
+    contour_coordinates = get_list_of_coordinates_from_contours(cv_contours)
+    # print(f"CONTOURS:\n", contour_coordinates)
 
 
+    test_hand.contour_points = contour_coordinates
     
+    for coordinate_set in test_hand.contour_points:
+        print(f"x: {coordinate_set[0]}, y: {coordinate_set[1]}")
+        cv.circle(test_hand.data_canvas, (coordinate_set[0], coordinate_set[1]), 2, 255, 1)
+
+    cv.imshow("contour points", test_hand.data_canvas)
+    # cv.drawContours(img_ergh, cv_contours, -1, (255, 0, 0), 1)
+    
+
+    # cv.imshow("img_ergh", img_ergh)
+    x,y,w,h = cv.boundingRect(cv_contours[0])
+
+    cropped = IMAGE_CONTOURED.img_array[y:y+h, x:x+w]
+
+    cropped_contours, _ = cv.findContours(
+        image=cropped, 
+        mode=cv.RETR_TREE,
+        method=cv.CHAIN_APPROX_SIMPLE)
+
+    cropped_contour_coordinates = get_list_of_coordinates_from_contours(cv_contours)
+    
+    IMAGE_CROPPED = Image(
+        name="cropped to size", 
+        img_array=cropped, 
+        version=ImageVersion.CROPPED)
+    
+    steps.append(IMAGE_CROPPED)
+
+    data_canvas_size = np.zeros((
+        IMAGE_CROPPED.img_array.shape[0], 
+        IMAGE_CROPPED.img_array.shape[1]))
+
+    test_hand.data_canvas = data_canvas_size
+    
+    # this is to be removed.
+    hand_w.data_canvas = data_canvas_size
+
+
+    # ******************* DRAWING ON THE REFERENCE IMAGE **********************
+    # finger tips
+    cv.circle(hand_w.data_canvas, hand_w.index.position, 2, Colors.fingertip_color, 2)
+    cv.putText(hand_w.data_canvas, "index tip", hand_w.index.position, font, 0.5, Colors.fingertip_color, 1)
+    
+    cv.circle(hand_w.data_canvas, hand_w.middle.position, 2, Colors.fingertip_color, 2)
+    cv.putText(hand_w.data_canvas, "middle tip", hand_w.middle.position, font, 0.5, Colors.fingertip_color, 1)
+    
+    cv.circle(hand_w.data_canvas, hand_w.ring.position, 2, Colors.fingertip_color, 2)
+    cv.putText(hand_w.data_canvas, "ring tip", hand_w.ring.position, font, 0.5, Colors.fingertip_color, 1)
+
+    # vallies
+    cv.circle(hand_w.data_canvas, hand_w.index_middle_valley, 2, (255, 255, 255), 2)
+    cv.circle(hand_w.data_canvas, hand_w.middle_ring_valley, 2, (255, 255, 255), 2)
+    cv.circle(hand_w.data_canvas, hand_w.ring_little_valley, 2, (255, 255, 255), 2)
+
+    # palm center
+    cv.circle(hand_w.data_canvas, hand_w.center, 2, Colors.center_color, 2)
+    cv.putText(hand_w.data_canvas, "palm center", hand_w.center, font, 0.5, Colors.center_color, 1)
+    # cv.circle(hand_w.data_canvas, hand_w.little.position, 2, Colors.fingertip_color, 2)
+    # cv.circle(hand_w.data_canvas, hand_w.thumb.position, 2, Colors.fingertip_color, 2)
+
+    
+
     
     # AT THIS POINT WE START ADDING DATA TO THE DATACANVAS
-    cv.drawContours(
-        image=test_hand.data_canvas.canvas, 
-        contours=test_hand.contours, 
-        contourIdx=-1, 
-        color=(255, 255, 255), 
-        thickness=3
-    )
+    
 
-    # TODO this should take the contours from just above.
-    IMAGE_CONTOURED = Image(
-        name="contoured image",
-        # pretty sure we can grab the contours from jus above
-        img_array=cv.drawContours(
-            image=np.zeros(original_img_size), 
-            contours= contours, 
-            contourIdx=-1, 
-            color=Colors.contours_color,
-            thickness=2
-        ),
-        version=ImageVersion.CONTOURED
-    )
-    steps.append(IMAGE_CONTOURED)
+    # # TODO this should take the contours from just above.
+    # IMAGE_CONTOURED = Image(
+    #     name="contoured image",
+    #     # pretty sure we can grab the contours from jus above
+    #     img_array=cv.drawContours(
+    #         image=np.zeros(original_img_size), 
+    #         contours= cv_contours, 
+    #         contourIdx=-1, 
+    #         color=Colors.contours_color,
+    #         thickness=2
+    #     ),
+    #     version=ImageVersion.CONTOURED
+    # )
+    # steps.append(IMAGE_CONTOURED)
 
         # Find the convex hull object for each contour
     hull_list = []
-    for i in range(len(contours)):
-        hull = cv.convexHull(contours[i])
+    for i in range(len(cv_contours)):
+        hull = cv.convexHull(cv_contours[i])
         hull_list.append(hull)
     
-    hull_canvas = np.zeros(original_img_size)
-    for i in range(len(contours)):
-        cv.drawContours(hull_canvas, hull_list, i, Colors.hull_color)
+    # hull_canvas = np.zeros(cropped_size)
+    # for i in range(len(cv_contours)):
+    #     cv.drawContours(
+    #         image=hull_canvas, 
+    #         contours=hull_list, 
+    #         contourIdx=i, 
+    #         color=Colors.hull_color,
+    #         thickness=2
+    #     )
+        
+    # cv.imshow("hull canvas", hull_canvas)
     
-    test_hand.hull = hull_list
+    # test_hand.hull = hull_list
 
     # cv.drawContours(hand.data_canvas.canvas, hand.hull, -1, (255, 0, 0), 3)
 
-    IMAGE_HULL = Image(
-        name="image with convex hull",
-        img_array=hull_canvas,
-        version=ImageVersion.WITH_HULL
-    )
-    steps.append(IMAGE_HULL)
+    # IMAGE_HULL = Image(
+    #     name="convex hull",
+    #     img_array=hull_canvas,
+    #     version=ImageVersion.WITH_HULL
+    # )
+    # steps.append(IMAGE_HULL)
 
 
-    defects = extractor.extract_defects(
-        contours=test_hand.contours[0]
-    )
+    # defects = extractor.extract_defects(
+    #     contours=test_hand.contours[0]
+    # )
     # print("defects: \n", defects) # yay
     # TODO add to hand
 
     defects_image = np.zeros(original_img_size)
 
-    extractor.draw_defects(
-        defects=defects, 
-        cnt=contours[0], 
-        output_image=defects_image
-    )
+    # extractor.draw_defects(
+    #     defects=defects, 
+    #     cnt=cv_contours[0], 
+    #     output_image=defects_image
+    # )
 
 
-    IMAGE_WITH_DEFECTS = extractor.draw_defects(
-            defects=defects, 
-            cnt=contours[0], 
-            output_image=test_hand.data_canvas.canvas
-    )
+    # IMAGE_WITH_DEFECTS = extractor.draw_defects(
+    #         defects=defects, 
+    #         cnt=cv_contours[0], 
+    #         output_image=test_hand.data_canvas.canvas
+    # )
     # cv.imshow("showing defects: ", defects_image)
     # steps.append(IMAGE_WITH_DEFECTS)
 
@@ -272,13 +301,9 @@ def main():
         step.display()
 
 
-    # hand.imshow_data_canvas()
-    # hand.old_compare_to_database()
-
-
-    cv.imshow("data canvas", test_hand.data_canvas.canvas)
-    # test_hand.print_data()
-    print("test_hand", test_hand)
+    cv.imshow("DATA IN HAND", test_hand.data_canvas)
+    cv.imshow("DATA IN reference", hand_w.data_canvas)
+    test_hand.print_data()
     # hand_w.print_data()
 
     cv.waitKey(0)
