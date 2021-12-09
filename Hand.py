@@ -92,6 +92,7 @@ class Hand:
     height: int = 1
     data_canvas: np.ndarray = np.zeros((width, height))
     center: tuple = (-1, -1)
+    palm_radius = -1
 
 
     def imshow_data_canvas(self) -> None:
