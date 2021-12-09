@@ -12,6 +12,31 @@ import Colors
 
 class Extractor:
 
+    def find_center(self, image: np.ndarray):
+         # gets the center of mass (palm)
+        mask = image
+        dist_transform = cv.distanceTransform(mask, cv.DIST_L2, 5)
+
+        min_val, max_val, min_loc, max_loc = cv.minMaxLoc(dist_transform, mask)
+
+        # // Output image
+        # cv::Mat3b out;
+        # cv::cvtColor(img, out, cv::COLOR_GRAY2BGR);
+        # cv::circle(out, max_loc, max_val, cv::Scalar(0, 255, 0));
+
+        # (maxDT[1], maxDT[0])
+
+        # cv.circle(
+        #     img=mask, 
+        #     center=max_loc,
+        #     radius=int(max_val), 
+        #     color=(100,100,100),
+        #     thickness= 1)
+        
+        cv.imshow("distance transform", mask)
+
+        return max_loc, int(max_val)
+
     def extract_contours(self, image: Image) -> list:
         contours, hierarchy = cv.findContours(
             image=image.img_array, 
@@ -105,20 +130,19 @@ class Extractor:
         hull = cv.convexHull(cnt, returnPoints = False)
         defects = cv.convexityDefects(cnt, hull)
 
-        points_canvas = np.zeros(output_image.shape)
-
         for i in range(defects.shape[0]):
             s,e,f,d = defects[i,0]
             start = tuple(cnt[s][0])
             end = tuple(cnt[e][0])
             far = tuple(cnt[f][0])
 
-            cv.line(output_image,start,end,[0,255,0],2)
-            cv.line(output_image,start,far,[0,0,255],2)
-            cv.line(output_image,far,end,[255,0,0],2)
+            # cv.line(output_image,start,end,[0,255,0],1)
+            cv.line(output_image,start,far,Colors.defect_color,1)
+            cv.line(output_image,far,end,Colors.defect_color,1)
             # cv.line(output_image,start,end,[0,255,0],2)
-            # cv.circle(output_image,far,5,[0,0,255],-1)
-            cv.circle(points_canvas,far,5,[0,0,255],-1)
+            cv.circle(output_image,far,5,Colors.defect_color,-1)
+            # cv.line(output_image,start,end,[0,255,0],2)
+            # cv.circle(points_canvas,far,5,Colors.defect_color,-1)
             # cv.putText(
             #     img=output_image, 
             #     text="end", 
@@ -127,6 +151,16 @@ class Extractor:
             #     fontScale=1, 
             #     color=(100, 100, 100)
             # )
+
+
+    # TODO DO THIS
+    def get_list_of_coordinates_from_contours(self, contours):
+        list_of_coordinates = []
+        for numpy_point in contours[0]:
+            point = numpy_point.tolist()
+            x, y = point[0]
+            list_of_coordinates.append([x, y])
+        return list_of_coordinates
 
 
     def get_number_of_fingers(self, defects, contours, analyze_image, draw_image: np.ndarray):
@@ -178,56 +212,6 @@ class Extractor:
 
         # cv.putText(draw_image, str(cnt), (0, 50), cv.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv.LINE_AA)
         return defects
-
-
-    # def get_top_of_palm(img: np.ndarray, contours: np.ndarray):
-        """Takes the image and the contours of the hand, sees"""
-        # if 
-
-    # returns the row of pixels containing the most white pixels
-    # def find_center_row(img: Image):
-        # TODO height should be top of palm
-        height, width = img.size  # get the size of the image
-        biggest_row = 0
-        maximum = 0
-        for _row in range(2, height - 2):
-            no_of_black_pixels = 0  # zero out the number of white pixels, because we only count per row
-            for _column in range(0, width):
-                if img.getpixel((_row, _column)) == 255:
-                    no_of_black_pixels += 1
-                    if no_of_black_pixels > maximum:
-                        biggest_row = _row
-                        maximum = no_of_black_pixels
-
-                    # print("line: " + str(y), ": ", blackPixels)
-        print(Colors.orange + "row with most white: ", biggest_row, "with ", maximum)
-        # return int value of the row containing the most white pixels
-        return biggest_row
-
-
-    # returns the column of pixels containing the most white pixels
-    # def find_center_column(img: Image):
-        height, width = img.size  # get the size of the image
-        biggest_column = 0
-        maximum = 0
-        for _column in range(2, width - 2):
-            no_of_white_pixels = 0
-            for _row in range(2, height - 2):
-                if img.getpixel((_row, _column)) == 255:
-                    no_of_white_pixels += 1
-                    if no_of_white_pixels > maximum:
-                        biggest_column = _column
-                        maximum = no_of_white_pixels
-
-        return biggest_column
-
-
-    # def get_palm_center(img: Image):
-        """returns x and y coordinates for the center of the palm"""
-        center_x: int = find_center_row(img)
-        center_y: int = find_center_column(img)
-        
-        return center_x, center_y
 
     # helper function to draw on the image.
     # def draw_point(_img: Image, _x: int, _y: int, color):
@@ -282,41 +266,4 @@ class Extractor:
                                             cv.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
         return im_with_keypoints
 
-
-    # for now this is not used, removed background by hand
-    # def removeThingsNotHand(src):
-        img = Image.fromarray(src)  # convert array to image
-        height, width = img.size  # get width and height
-        for x in range(0, height):
-            for y in range(0, height):
-                if img.getpixel((x, y)) == 0:
-                    img.putpixel((x, y), 255)
-                elif img.getpixel((x, y)) == 255:
-                    img.putpixel((x, y), 0)
-        return np.array(img)
-
-    # calculate moments of binary image
-    # def findCenter(img):
-        # if input is 3 channels, convert to 1
-        singleChannel = convertToSingleChannel(img)
-        print("number of channels: ", len(singleChannel.split()))
-
-        # Binarize the image
-        inverted = invertColor(singleChannel)
-        # Find the contours
-        contours, hierarchy = cv.findContours(np.array(singleChannel), 1, 2)
-
-        cnt = contours[0]
-        # Calculate the moments
-        M = cv.moments(cnt)
-
-        # Calculate centroid
-        if M["m00"] != 0:
-            cx = int(M["m10"] / M["m00"])
-            cy = int(M["m01"] / M["m00"])
-        else:
-            # set values as what you need in the situation
-            cx, cy = 0, 0
-
-        cv.circle(np.array(inverted), (cx, cy), 5, (0, 0, 255), 2)
-        return inverted
+    
