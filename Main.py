@@ -84,12 +84,7 @@ def main():
         orientation=None, 
         contour_points=None, 
         hull=None, 
-        defects=None,
-        thumb_index_valley=None,
-        index_middle_valley=None,
-        middle_ring_valley=None,
-        ring_little_valley=None
-    )
+        defects=None)
     
     
     # The two currently implemented processors.
@@ -141,8 +136,7 @@ def main():
             version=ImageVersion.BINARIZED
         ).img_array,
         mode=cv.RETR_TREE,
-        method=cv.CHAIN_APPROX_SIMPLE
-    )
+        method=cv.CHAIN_APPROX_SIMPLE)
 
     IMAGE_CONTOURED = Image(
         name="contoured image", 
@@ -153,8 +147,7 @@ def main():
             color=(0, 0, 255), 
             thickness=1
         ), 
-        version=ImageVersion.CONTOURED 
-    )
+        version=ImageVersion.CONTOURED)
 
     contour_coordinates = get_list_of_coordinates_from_contours(cv_contours)
     # print(f"CONTOURS:\n", contour_coordinates)
@@ -166,8 +159,7 @@ def main():
         print(f"x: {coordinate_set[0]}, y: {coordinate_set[1]}")
         cv.circle(test_hand.data_canvas, (coordinate_set[0], coordinate_set[1]), 2, 255, 1)
 
-    cv.imshow("contour points", test_hand.data_canvas)
-    # cv.drawContours(img_ergh, cv_contours, -1, (255, 0, 0), 1)
+    # cv.imshow("contour points", test_hand.data_canvas)
     
 
     # cv.imshow("img_ergh", img_ergh)
@@ -180,7 +172,7 @@ def main():
         mode=cv.RETR_TREE,
         method=cv.CHAIN_APPROX_SIMPLE)
 
-    cropped_contour_coordinates = get_list_of_coordinates_from_contours(cv_contours)
+    cropped_contour_coordinates = get_list_of_coordinates_from_contours(cropped_contours)
     
     IMAGE_CROPPED = Image(
         name="cropped to size", 
@@ -191,12 +183,16 @@ def main():
 
     data_canvas_size = np.zeros((
         IMAGE_CROPPED.img_array.shape[0], 
-        IMAGE_CROPPED.img_array.shape[1]))
+        IMAGE_CROPPED.img_array.shape[1], 
+        3))
 
     test_hand.data_canvas = data_canvas_size
     
     # this is to be removed.
     hand_w.data_canvas = data_canvas_size
+
+    for coordinate_set in cropped_contour_coordinates:
+        cv.circle(hand_w.data_canvas, (coordinate_set[0], coordinate_set[1]), 1, (255, 255, 255), 1)
 
 
     # ******************* DRAWING ON THE REFERENCE IMAGE **********************
@@ -221,26 +217,6 @@ def main():
     # cv.circle(hand_w.data_canvas, hand_w.little.position, 2, Colors.fingertip_color, 2)
     # cv.circle(hand_w.data_canvas, hand_w.thumb.position, 2, Colors.fingertip_color, 2)
 
-    
-
-    
-    # AT THIS POINT WE START ADDING DATA TO THE DATACANVAS
-    
-
-    # # TODO this should take the contours from just above.
-    # IMAGE_CONTOURED = Image(
-    #     name="contoured image",
-    #     # pretty sure we can grab the contours from jus above
-    #     img_array=cv.drawContours(
-    #         image=np.zeros(original_img_size), 
-    #         contours= cv_contours, 
-    #         contourIdx=-1, 
-    #         color=Colors.contours_color,
-    #         thickness=2
-    #     ),
-    #     version=ImageVersion.CONTOURED
-    # )
-    # steps.append(IMAGE_CONTOURED)
 
         # Find the convex hull object for each contour
     hull_list = []
@@ -248,29 +224,6 @@ def main():
         hull = cv.convexHull(cv_contours[i])
         hull_list.append(hull)
     
-    # hull_canvas = np.zeros(cropped_size)
-    # for i in range(len(cv_contours)):
-    #     cv.drawContours(
-    #         image=hull_canvas, 
-    #         contours=hull_list, 
-    #         contourIdx=i, 
-    #         color=Colors.hull_color,
-    #         thickness=2
-    #     )
-        
-    # cv.imshow("hull canvas", hull_canvas)
-    
-    # test_hand.hull = hull_list
-
-    # cv.drawContours(hand.data_canvas.canvas, hand.hull, -1, (255, 0, 0), 3)
-
-    # IMAGE_HULL = Image(
-    #     name="convex hull",
-    #     img_array=hull_canvas,
-    #     version=ImageVersion.WITH_HULL
-    # )
-    # steps.append(IMAGE_HULL)
-
 
     # defects = extractor.extract_defects(
     #     contours=test_hand.contours[0]
@@ -295,11 +248,14 @@ def main():
     # cv.imshow("showing defects: ", defects_image)
     # steps.append(IMAGE_WITH_DEFECTS)
 
-    #showing all the current versions
-    for step in steps:
-        print("image version: ", step.name)
-        step.display()
+    # SHOW ALL CURRENT VERSIONS
+    # for step in steps:
+        # print("image version: ", step.name)
+        # step.display()
 
+
+    # SHOW LATEST VERSION
+    # cv.imshow("latest version", len(steps) - 1)
 
     cv.imshow("DATA IN HAND", test_hand.data_canvas)
     cv.imshow("DATA IN reference", hand_w.data_canvas)
