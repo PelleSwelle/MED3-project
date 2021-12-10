@@ -121,6 +121,40 @@ class Extractor:
         return defects
 
 
+
+    def get_defects_starts(self, defects: np.ndarray, cnt) -> list:
+        hull = cv.convexHull(cnt, returnPoints=False)
+        defects = cv.convexityDefects(cnt, hull)
+        start_points = []
+        for i in range(defects.shape[0]):
+            s, e, f, d = defects[i, 0]
+            start = tuple(cnt[s][0])
+            start_points.append(start)
+        return start_points
+
+    def get_defects_ends(self, defects: np.ndarray, cnt) -> list:
+        hull = cv.convexHull(cnt, returnPoints=False)
+        defects = cv.convexityDefects(cnt, hull)
+        end_points = []
+        
+        for i in range(defects.shape[0]):
+            s, e, f, d = defects[i, 0]
+            end = tuple(cnt[e][0])
+            end_points.append(end)
+        return end_points
+    
+    def get_defects_fars(self, defects: np.ndarray, cnt) -> list:
+        hull = cv.convexHull(cnt, returnPoints=False)
+        defects = cv.convexityDefects(cnt, hull)
+        far_points = []
+        
+        for i in range(defects.shape[0]):
+            s, e, f, d = defects[i, 0]
+            far = tuple(cnt[e][0])
+            far_points.append(far)
+        return far_points
+
+
     def draw_defects(
         self, 
         defects: np.ndarray, 
@@ -135,12 +169,38 @@ class Extractor:
             start = tuple(cnt[s][0])
             end = tuple(cnt[e][0])
             far = tuple(cnt[f][0])
+            distance = d
+            print(f"distance, {distance}")
 
             # cv.line(output_image,start,end,[0,255,0],1)
-            cv.line(output_image,start,far,Colors.defect_color,1)
-            cv.line(output_image,far,end,Colors.defect_color,1)
-            # cv.line(output_image,start,end,[0,255,0],2)
-            cv.circle(output_image,far,5,Colors.defect_color,-1)
+            
+            # LINES FROM VALLIES TO TIPS
+            # cv.line(
+            #     img=output_image,
+            #     pt1=start,
+            #     pt2=far,
+            #     color=Colors.defect_color,
+            #     thickness=1)
+            cv.line(
+                img=output_image,
+                pt1=far,
+                pt2=end,
+                color=Colors.defect_color,
+                thickness=1)
+            cv.line(output_image,start,end,[0,255,0],2)
+            
+            cv.circle(
+                img=output_image,
+                center=start,
+                radius=1,
+                color=(200, 100, 0),
+                thickness=-1)
+            cv.circle(
+                img=output_image,
+                center=end,
+                radius=1,
+                color=(0, 200, 100),
+                thickness=-1)
             # cv.line(output_image,start,end,[0,255,0],2)
             # cv.circle(points_canvas,far,5,Colors.defect_color,-1)
             # cv.putText(
@@ -151,6 +211,8 @@ class Extractor:
             #     fontScale=1, 
             #     color=(100, 100, 100)
             # )
+
+        return start
 
 
     # TODO DO THIS
