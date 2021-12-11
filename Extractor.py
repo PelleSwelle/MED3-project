@@ -9,6 +9,7 @@ from numpy.lib.histograms import _histogram_bin_edges_dispatcher
 import math
 import PreProcessing
 import Colors
+from math import sqrt
 
 class Extractor:
 
@@ -18,20 +19,6 @@ class Extractor:
         dist_transform = cv.distanceTransform(mask, cv.DIST_L2, 5)
 
         min_val, max_val, min_loc, max_loc = cv.minMaxLoc(dist_transform, mask)
-
-        # // Output image
-        # cv::Mat3b out;
-        # cv::cvtColor(img, out, cv::COLOR_GRAY2BGR);
-        # cv::circle(out, max_loc, max_val, cv::Scalar(0, 255, 0));
-
-        # (maxDT[1], maxDT[0])
-
-        # cv.circle(
-        #     img=mask, 
-        #     center=max_loc,
-        #     radius=int(max_val), 
-        #     color=(100,100,100),
-        #     thickness= 1)
         
         cv.imshow("distance transform", mask)
 
@@ -214,6 +201,38 @@ class Extractor:
 
         return start
 
+
+    def filter_arr(self, coordinate_list: list, offset: int):
+        # sort elements after y-value
+        coordinate_list.sort(key=lambda x: x[1])
+        # list to return
+        filtered_nums = tuple
+        for pair in coordinate_list:
+            # for each level of offset
+            for x in range(-offset, offset+1):
+                if any(pair[1]+x in coordinate_list[pair[1]]):
+                    continue
+                else:
+                    filtered_nums.add(pair)
+        return filtered_nums
+
+    # def filter_points(self, coordinate_list:list, offset: int):
+    #     coordinate_list.sort(key=lambda x: x[1])
+    #     filtered_points = []
+    #     for point in coordinate_list:
+    #         for coordinate in point:
+    #             if coordinate
+    #     return filtered_points
+
+
+    def length(self, point1: tuple, point2: tuple) -> int:
+        # * pythagoras to find length from center to point
+        len_hori = point1[0] - point2[0]
+        len_vert = point1[1] - point2[1]
+
+        length_squared = pow(len_hori, 2) + pow(len_vert, 2)
+        length = int(sqrt(length_squared))
+        return length
 
     # TODO DO THIS
     def get_list_of_coordinates_from_contours(self, contours):

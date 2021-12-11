@@ -34,4 +34,6 @@ class Classifier:
             self.compare_finger_state(hand.little, ref.little) and
             self.compare_finger_state(hand.thumb, ref.thumb)):
             return True
+        else:
+            return False
         

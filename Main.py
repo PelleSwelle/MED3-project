@@ -8,6 +8,7 @@ from Extractor import Extractor
 from Hand import Finger, Name, state, Hand, Orientation
 from Image import Image, ImageVersion
 from PreProcessor import PreProcessor
+from math import sqrt
 
 steps = []
 font = cv.FONT_HERSHEY_COMPLEX
@@ -82,7 +83,7 @@ def main():
     test_hand.little.state = state.NOT_SET
     test_hand.thumb.state = state.NOT_SET
 
-    image_read = cv.imread("images/alphabet/K.png")
+    image_read = cv.imread("images/alphabet/W.png")
 
     cv.imshow("original", image_read)
     
@@ -162,38 +163,38 @@ def main():
         contours=cv_contours[0]
     )
 
-    # defect_starts = extractor.get_defects_starts(test_hand.defects, cv_contours[0])
+    # *get the ends value of the defects
     defect_ends = extractor.get_defects_ends(test_hand.defects, cv_contours[0])
-    # defect_fars = extractor.get_defects_fars(test_hand.defects, cv_contours[0])
 
-    # for point in defect_starts:
-    #     cv.circle(test_hand.data_canvas, point, 2, 
-    #     (0, 255, 255), 2)
+    #* sort the list according to their x value
+    defect_ends.sort(key=lambda x: x[0])
+    print(f"sorted defect ends: \n{defect_ends}")
+
+    # filtered = extractor.filter_arr(defect_ends, 2)
+    # print(f"filtered:\n{filtered}")
+    
+    # TODO this is where I am at. 
+    filtered_ends = []
     for point in defect_ends:
-        cv.line(test_hand.data_canvas, test_hand.center, point, (255, 100, 100), 2)
-        # print("point:", point)
-        # length = cv.pointPolygonTest(
-        #     contour=cv_contours[0], 
-        #     pt=point,
-        #     measureDist=True)
-        # print("length: ", length)
+        for compare_point in defect_ends:
+            if compare_point != point:
+                if extractor.length(point, compare_point) > 257:
+                    filtered_ends.append(point)
+                else:
+                    continue
 
-        cv.circle(test_hand.data_canvas, point, 2, 
-        (255, 255, 0), 2)
+    for point in filtered_ends:
+        # if extractor.length(point1=point, point2=test_hand.center) > 100:
+            
+            #* maybe implement if there is a valley in between, detect a finger
+        cv.line(test_hand.data_canvas, test_hand.center, point, (255, 100, 100), 1)
+
+        cv.circle(test_hand.data_canvas, point, 2, (255, 255, 0), 2)
+    
     # for point in defect_fars:
     #     cv.circle(test_hand.data_canvas, point, 2, 
     #     (100, 0, 100), 2)
 
-
-    # for pair in test_hand.contour_points:
-    #     if pair[1] < test_hand.palm_radius:
-    #         cv.line(
-    #             img=test_hand.data_canvas,
-    #             pt1=test_hand.center,
-    #             pt2=(pair[0], pair[1]), 
-    #             color=(255, 100, 60), 
-    #             thickness=1)
-    # print("defects: \n", defects) # yay
     # # TODO add to hand
 
     # defects_image = np.zeros(original_img_size)
@@ -209,7 +210,7 @@ def main():
     test_hand.print_data()
     REFERENCE_W.print_data()
 
-    # print(classifier.compare_states(test_hand, REFERENCE_W))
+    print(classifier.compare_states(test_hand, REFERENCE_W))
     
 
     cv.waitKey(0)
