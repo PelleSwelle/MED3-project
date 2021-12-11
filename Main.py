@@ -8,7 +8,7 @@ from Extractor import Extractor
 from Hand import Finger, Name, state, Hand, Orientation
 from Image import Image, ImageVersion
 from PreProcessor import PreProcessor
-from math import sqrt
+from math import dist, sqrt
 
 steps = []
 font = cv.FONT_HERSHEY_COMPLEX
@@ -156,7 +156,13 @@ def main():
     
     test_hand.hull = hull_list
 
-    # cv.drawContours(test_hand.data_canvas, test_hand.hull, -2, Colors.hull_color, 1)
+    cv.drawContours(test_hand.data_canvas, test_hand.hull, -2, Colors.hull_color, 1)
+
+    hull_points = extractor.get_list_of_coordinates_from_contours(test_hand.hull)
+    print(f"Hull points: {hull_points}")
+    # for point in hull_points:
+    #     cv.circle(test_hand.data_canvas, point, 2, (240, 20, 10), -1)
+    #     cv.line(test_hand.data_canvas, test_hand.center, point, (240, 100, 0), 1)
     
 
     test_hand.defects = extractor.extract_defects(
@@ -168,6 +174,8 @@ def main():
 
     #* sort the list according to their x value
     defect_ends.sort(key=lambda x: x[0])
+
+    ends_copy = list(defect_ends)
     print(f"sorted defect ends: \n{defect_ends}")
 
     # filtered = extractor.filter_arr(defect_ends, 2)
@@ -175,21 +183,31 @@ def main():
     
     # TODO this is where I am at. 
     filtered_ends = []
-    for point in defect_ends:
-        for compare_point in defect_ends:
-            if compare_point != point:
-                if extractor.length(point, compare_point) > 257:
-                    filtered_ends.append(point)
-                else:
-                    continue
+    thresh = 20
+    for point in hull_points:
+        is_valid = True
+        for compare_point in filtered_ends:
+            dist = extractor.length(compare_point, point)
+            print(f"distance: {dist}")
+            
+            if dist < thresh:
+                is_valid = False
+                break
+                # filtered_ends.append(point)
+        
+        if is_valid:
+            filtered_ends.append(point)
+        
+    
+    print("filtered ends: ", filtered_ends)
 
     for point in filtered_ends:
-        # if extractor.length(point1=point, point2=test_hand.center) > 100:
-            
-            #* maybe implement if there is a valley in between, detect a finger
-        cv.line(test_hand.data_canvas, test_hand.center, point, (255, 100, 100), 1)
+        if point[1] < test_hand.center[1]:
+            cv.line(test_hand.data_canvas, test_hand.center, point, (255, 100, 100), 1)
 
-        cv.circle(test_hand.data_canvas, point, 2, (255, 255, 0), 2)
+            cv.circle(test_hand.data_canvas, point, 2, (255, 255, 0), 2)
+
+            #* maybe implement if there is a valley in between, detect a finger
     
     # for point in defect_fars:
     #     cv.circle(test_hand.data_canvas, point, 2, 
