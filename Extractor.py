@@ -216,14 +216,6 @@ class Extractor:
                     filtered_nums.add(pair)
         return filtered_nums
 
-    # def filter_points(self, coordinate_list:list, offset: int):
-    #     coordinate_list.sort(key=lambda x: x[1])
-    #     filtered_points = []
-    #     for point in coordinate_list:
-    #         for coordinate in point:
-    #             if coordinate
-    #     return filtered_points
-
 
     def length(self, point1: tuple, point2: tuple) -> int:
         # * pythagoras to find length from center to point
