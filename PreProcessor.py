@@ -63,7 +63,7 @@ class PreProcessor:
         # cropped_contoured_image = contours_drawn[y:y+h, x:x+w]
         
         
-        print(f"image size is now: {cropped_binarized_image.shape[0]} x {cropped_binarized_image.shape[1]}")
+        print(Colors.blue + f"cropped input image to: {cropped_binarized_image.shape[0]} x {cropped_binarized_image.shape[1]}" + Colors.white)
         
         # TODO here goes normalize to size of palm 
 

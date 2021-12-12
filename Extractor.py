@@ -202,27 +202,20 @@ class Extractor:
         return start
 
 
-    def filter_arr(self, coordinate_list: list, offset: int):
-        # sort elements after y-value
-        coordinate_list.sort(key=lambda x: x[1])
-        # list to return
-        filtered_nums = tuple
-        for pair in coordinate_list:
-            # for each level of offset
-            for x in range(-offset, offset+1):
-                if any(pair[1]+x in coordinate_list[pair[1]]):
-                    continue
-                else:
-                    filtered_nums.add(pair)
-        return filtered_nums
-
-    # def filter_points(self, coordinate_list:list, offset: int):
-    #     coordinate_list.sort(key=lambda x: x[1])
-    #     filtered_points = []
-    #     for point in coordinate_list:
-    #         for coordinate in point:
-    #             if coordinate
-    #     return filtered_points
+    def filter_points(self, coordinate_list: list, threshold: int):
+        filtered_points = []
+        for point in coordinate_list:
+            is_valid = True
+            for compare_point in filtered_points:
+                dist = self.length(compare_point, point)
+                
+                if dist < threshold:
+                    is_valid = False
+                    break
+            
+            if is_valid:
+                filtered_points.append(point)
+        return filtered_points
 
 
     def length(self, point1: tuple, point2: tuple) -> int:

@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 from enum import Enum, auto
+from os import stat
 import cv2 as cv
 from cv2 import bitwise_not, data
 import numpy as np
@@ -13,7 +14,9 @@ import Draw
 import Image
 from typing import Tuple
 
-class state(Enum):
+font = cv.FONT_HERSHEY_COMPLEX
+
+class State(Enum):
     """states that a finger can be in"""
     IN = auto()
     OUT = auto()
@@ -26,7 +29,8 @@ class state(Enum):
     TOUCHING_LITTLE = auto()
 
 
-class Name(Enum):
+class Title(Enum):
+    NOT_SET = auto()
     INDEX_FINGER = auto()
     MIDDLE_FINGER = auto()
     RING_FINGER = auto()
@@ -47,16 +51,16 @@ class Hull:
 
 
 class Finger:
-    """
-    Generic class for each finger on the hand. 
-    Instatiates with the state set to not set. 
-    """
-    def __init__(self, name: Name) -> None:
-        self.name: name
-        self.position: tuple = (-1, -1)
+    """Generic class for each finger on the hand."""
+    title: Title
+    position: tuple
+    state: State
+    def __init__(self, title: Title = Title.NOT_SET, position: tuple = (-1, -1), state: State = State.NOT_SET) -> None:
+        self.title: title
+        self.position = position
 
-        self.state: state = state.NOT_SET
-
+        self.state = state
+        
 
 class Orientation(Enum):
     """ orientations for the hand"""
@@ -65,22 +69,14 @@ class Orientation(Enum):
     FINGERS_RIGHT = auto()
     NOT_SET = auto()
 
-class Hand:
-    """Generic class containing all the data that the hand should contain."""
-    name: str
-    # FINGERS
-    index: Finger
-    middle: Finger
-    ring: Finger
-    little: Finger
-    thumb: Finger
-    fingers: list
 
-    # FINGER VALLIES
-    thumb_index_valley: tuple = (0, 0)
-    index_middle_valley: tuple = (0, 0)
-    middle_ring_valley: tuple = (0, 0)
-    ring_little_valley: tuple = (0, 0)
+class Hand:
+    """Generic class containing all the data that the hand should contain.
+    always takes a picture of a hand"""
+    name: str
+    
+    #* fingers will be added when found 
+    fingers: list
     
     #DIMENSIONS
     width: int
@@ -95,21 +91,29 @@ class Hand:
     defects: list
     orientation: Orientation = Orientation.NOT_SET
     finger_width: int
-    
-    
-    def __init__(self, name: str) -> None:
-        self.name = name
-        self.thumb = Finger(name=Name.THUMB_FINGER)
-        self.index = Finger(name=Name.INDEX_FINGER)
-        self.ring = Finger(name=Name.RING_FINGER)
-        self.middle = Finger(name=Name.MIDDLE_FINGER)
-        self.little = Finger(name=Name.LITTLE_FINGER)
 
-        self.width = 0
-        self.height = 0
-        self.palm_radius = 1
-        self.fingers = [self.thumb, self.index, self.middle, self.ring, self.little]
-        self.data_canvas = np.zeros((self.width, self.height))
+    # UTIL
+    image: np.ndarray
+    
+    
+    def __init__(
+        self, 
+        image: np.ndarray,
+        name: str = "", 
+        width: int = 0, 
+        height: int = 0, 
+        palm_radius: int = 0, 
+        fingers: list = []) -> None:
+
+        self.image = cv.imread(f"images/alphabet/{image}.png")
+        self.name = name
+        self.image
+        self.width = width
+        self.height = height
+        self.palm_radius = palm_radius
+        self.fingers = []
+        self.data_canvas: np.zeros((300, 300, 3))
+        # self.fingers = [self.finger1, self.finger2, self.finger3, self.finger4, self.finger5]
         self.finger_width = self.palm_radius / 4
 
     
@@ -118,28 +122,32 @@ class Hand:
 
 
     def imshow_data_canvas(self) -> None:
-        cv.imshow(winname="data extracted", mat=self.data_canvas)
+        self.data_canvas = np.zeros((self.width, self.height, 3))
+        print("self.height", self.height)
+        cv.putText(self.data_canvas, self.name, (0, self.height), font, 0.6, (255, 0, 100), 2)
+        if self.center != None:
+            cv.circle(self.data_canvas, self.center, 2, (200, 100, 50), -1)
+        cv.imshow("data extracted", self.data_canvas)
 
 
     def print_data(self) -> None:
         """Prints all the fields of the instance of the hand and wether they are filled."""
         print(f"************ {self.name} *************")
         print("center: ", self.center)
+        
         if (self.orientation != None):
             print("orientation: ", self.orientation)
         else:
             print("no orientation")
+        
         if self.contour_points != None:
             print("contours: ", len(self.contour_points))
         # if self.defects != None:
         # print("defects: ", len(self.defects))
         # print("hull: ", len(self.hull))
         # print("vallies")
-        print(f"Finger: {self.index.state}")
-        print(f"Finger: {self.middle.state}")
-        print(f"Finger: {self.ring.state}")
-        print(f"Finger: {self.little.state}")
-        print(f"Finger: {self.thumb.state}")
+        for finger in self.fingers:
+            print(finger.name)
         print("**************************************")
 
 
