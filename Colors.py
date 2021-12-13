@@ -14,3 +14,10 @@ hull_color = (0, 255, 0)
 center_color = (255, 0, 255)
 defect_color = (0, 255, 255)
 fingertip_color = (255, 255, 0)
+
+#* finger colors
+thumb_color = (24, 100, 200)
+index_finger_color = (200, 24, 100)
+middle_finger_color = (50, 150, 0)
+ring_finger_color = (0, 120, 120)
+little_finger_color = (120, 120, 120)

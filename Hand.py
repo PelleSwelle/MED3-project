@@ -113,7 +113,6 @@ class Hand:
         self.palm_radius = palm_radius
         self.fingers = []
         self.data_canvas: np.zeros((300, 300, 3))
-        # self.fingers = [self.finger1, self.finger2, self.finger3, self.finger4, self.finger5]
         self.finger_width = self.palm_radius / 4
 
     
@@ -134,22 +133,29 @@ class Hand:
         """Prints all the fields of the instance of the hand and wether they are filled."""
         print(f"************ {self.name} *************")
         printout = "{:<2}: {:>50}"
+        
+        #* center point
         print(printout.format("center", str(self.center)))
         
+        #* orientation
         if (self.orientation != None):
             print(printout.format("orientation", str(self.orientation)))
         else:
             print(printout.format("orientation", "nope"))
         
+        #* contour points
         if self.contour_points != None:
             print(printout.format("contours", len(self.contour_points)))
             # print("contours: ", len(self.contour_points))
         # if self.defects != None:
         # print("defects: ", len(self.defects))
-        # print("hull: ", len(self.hull))
+        if self.hull != None:
+            print(printout.format("Hull", len(self.hull)))    
         # print("vallies")
         for finger in self.fingers:
-            print(printout.format("finger", finger))
+            if finger.position != None:
+                print(printout.format("finger position", str(finger.position)))
+                
         print("**************************************")
 
 
