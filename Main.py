@@ -54,6 +54,37 @@ def main():
         hand.data_canvas = np.zeros((hand.width, hand.height, 3))
         hand.center, hand.palm_circumference = extractor.find_center(database.images[i])
         print("hand.center: ", hand.center)
+        hand.contours, _ = cv.findContours(database.images[i], cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
+        cv.drawContours(hand.data_canvas, 
+            contours=hand.contours, 
+            contourIdx= -1, 
+            color=Colors.contours_color, 
+            thickness=1)
+
+        #     # Find the convex hull object for each contour
+        hull_list = []
+        for e in range(len(hand.contours)):
+            hull = cv.convexHull(hand.contours[e])
+            hull_list.append(hull)
+        
+        hand.hull = hull_list
+
+        hull_points = extractor.get_list_of_coordinates_from_contours(hand.hull)
+
+        cv.drawContours(hand.data_canvas, hand.hull, -2, Colors.hull_color, 1)
+
+        filtered_points = extractor.filter_points(hull_points, 20)
+        
+        for point in filtered_points:
+            # if point is above the circle on the palm of the hand
+            if point[1] < hand.center[1] - hand.palm_radius:
+                # cv.putText(hand.data_canvas, "finger", (point[0] - 20, point[1] + 20), font, 0.4, (255, 100, 100), 1)
+                cv.line(hand.data_canvas, hand.center, point, (255, 100, 100), 1)
+
+                cv.circle(hand.data_canvas, point, 2, (255, 255, 0), 2)
+
+
+
         cv.circle(hand.data_canvas, hand.center, 2, Colors.center_color, -1)
         cv.circle(hand.data_canvas, hand.center, hand.palm_circumference, Colors.center_color, 2)
         cv.imshow(hand.name + " datacanvas", hand.data_canvas)
