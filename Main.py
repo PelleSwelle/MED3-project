@@ -36,11 +36,29 @@ def main():
     #* load the database of signs and images
     database = Database()
     database.load()
-    # database.imshow_database()
-    for sign in database.signs:
-        print("signs in database: ", sign.name)
-    print(f"database.signs length: {len(database.images)}")
+
     preprocesser = PreProcessor()
+    extractor = Extractor()
+    classifier = Classifier()
+    #* filling database with data
+    i = 0
+    for image in database.images:
+        processed_image = preprocesser.preprocess(image)
+        database.images[i] = processed_image
+        i+=1
+    
+    i = 0
+    for hand in database.hands:
+        hand.width = database.images[i].shape[0]
+        hand.height = database.images[i].shape[1]
+        hand.data_canvas = np.zeros((hand.width, hand.height, 3))
+        hand.center, hand.palm_circumference = extractor.find_center(database.images[i])
+        print("hand.center: ", hand.center)
+        cv.circle(hand.data_canvas, hand.center, 2, Colors.center_color, -1)
+        cv.circle(hand.data_canvas, hand.center, hand.palm_circumference, Colors.center_color, 2)
+        cv.imshow(hand.name + " datacanvas", hand.data_canvas)
+        i+=1
+
 
 
     # ***************READ IMAGE AND PREPROCESS*********************
@@ -56,13 +74,12 @@ def main():
     
 
     extraction_image = preprocesser.preprocess(hand.image)
-    extractor = Extractor()
-    classifier = Classifier()
+    
     cv.imshow("image ready to be extracted", extraction_image)
 
     # ****************** SET DATA CANVAS SIZE************************
-    ref_w.width = extraction_image.shape[0]
-    ref_w.height = extraction_image.shape[1]
+    # ref_w.width = extraction_image.shape[0]
+    # ref_w.height = extraction_image.shape[1]
     # ref_w.data_canvas = np.zeros((ref_w.width, ref_w.height, 3), dtype=np.uint8)
     
     hand.width = extraction_image.shape[0]
@@ -182,9 +199,9 @@ def main():
     # cv.imshow("HAND DATA", test_hand.data_canvas)
     hand.imshow_data_canvas()
     # cv.imshow("REF DATA", REFERENCE_W.data_canvas)
-    ref_w.imshow_data_canvas()
+    # ref_w.imshow_data_canvas()
     hand.print_data()
-    ref_w.print_data()
+    # ref_w.print_data()
 
     # print(classifier.compare_states(test_hand, REFERENCE_W))
     

@@ -133,21 +133,23 @@ class Hand:
     def print_data(self) -> None:
         """Prints all the fields of the instance of the hand and wether they are filled."""
         print(f"************ {self.name} *************")
-        print("center: ", self.center)
+        printout = "{:<2}: {:>50}"
+        print(printout.format("center", str(self.center)))
         
         if (self.orientation != None):
-            print("orientation: ", self.orientation)
+            print(printout.format("orientation", str(self.orientation)))
         else:
-            print("no orientation")
+            print(printout.format("orientation", "nope"))
         
         if self.contour_points != None:
-            print("contours: ", len(self.contour_points))
+            print(printout.format("contours", len(self.contour_points)))
+            # print("contours: ", len(self.contour_points))
         # if self.defects != None:
         # print("defects: ", len(self.defects))
         # print("hull: ", len(self.hull))
         # print("vallies")
         for finger in self.fingers:
-            print(finger.name)
+            print(printout.format("finger", finger))
         print("**************************************")
 
 
