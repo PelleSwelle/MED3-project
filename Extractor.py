@@ -20,7 +20,7 @@ class Extractor:
 
         min_val, max_val, min_loc, max_loc = cv.minMaxLoc(dist_transform, mask)
         
-        cv.imshow("distance transform", mask)
+        # cv.imshow("distance transform", mask)
 
         return max_loc, int(max_val)
 
@@ -117,6 +117,7 @@ class Extractor:
             s, e, f, d = defects[i, 0]
             start = tuple(cnt[s][0])
             start_points.append(start)
+            print("get_defect_starts returns: ", start_points)
         return start_points
 
     def get_defects_ends(self, defects: np.ndarray, cnt) -> list:
@@ -128,6 +129,7 @@ class Extractor:
             s, e, f, d = defects[i, 0]
             end = tuple(cnt[e][0])
             end_points.append(end)
+            print("get_defect_ends returns: ", end_points)
         return end_points
     
     def get_defects_fars(self, defects: np.ndarray, cnt) -> list:
@@ -139,6 +141,7 @@ class Extractor:
             s, e, f, d = defects[i, 0]
             far = tuple(cnt[e][0])
             far_points.append(far)
+            print("get_defect_fars returns: ", far_points)
         return far_points
 
 
@@ -198,6 +201,8 @@ class Extractor:
             #     fontScale=1, 
             #     color=(100, 100, 100)
             # )
+        
+        print("draw_defects returns: ", start)
 
         return start
 
@@ -215,6 +220,8 @@ class Extractor:
             
             if is_valid:
                 filtered_points.append(point)
+        
+        print("filter_points returns: ", len(filtered_points), " points")
         return filtered_points
 
 
@@ -225,6 +232,7 @@ class Extractor:
 
         length_squared = pow(len_hori, 2) + pow(len_vert, 2)
         length = int(sqrt(length_squared))
+        # print("length returns: ", length)
         return length
 
     # TODO DO THIS
@@ -234,6 +242,7 @@ class Extractor:
             point = numpy_point.tolist()
             x, y = point[0]
             list_of_coordinates.append([x, y])
+        print("get_list_of_coordinates returns: ", len(list_of_coordinates))
         return list_of_coordinates
 
 

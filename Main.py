@@ -6,16 +6,24 @@ from Classifyer import Classifier
 from Database import Database
 import Colors
 from Extractor import Extractor
-from Hand import Finger, Title, State, Hand, Orientation
+from Hand import Finger, Title, Hand, Orientation
 from Image import Image, ImageVersion
 from PreProcessor import PreProcessor
 from math import dist, sqrt
 import os
+from pprint import pprint
 
 def clear(): os.system('cls') #on Windows System
 
 steps = []
 font = cv.FONT_HERSHEY_COMPLEX
+
+def rescale_frame(frame, scale = 0.75):
+    width = int(frame.shape[1] * scale)
+    height = int(frame.shape[0] * scale)
+    dimensions = (width, height)
+
+    return cv.resize(frame, dimensions, interpolation=cv.INTER_AREA)
 
 def print_images():
     print(Colors.green + "current content of images:")
@@ -34,9 +42,49 @@ def get_version(version: ImageVersion):
 def main():
     #* clear the console
     clear()
+
+    # camera = cv.VideoCapture(0)
+    # webcam_image = np.ndarray((20, 20, 3))
+    # print("Welcome. You should be seeing a feed from your webcam on screen right now")
+    # print("press p to take a picture to run through the algorithm")
+    
+    # photo_mode = True
+    # while photo_mode:
+    #     ret, frame = camera.read()
+    #     if not ret:
+    #         print("failed to grab frame")
+    #         break
+    #     cv.imshow("camera", frame)
+
+    #     if cv.waitKey(1) == ord('p'):
+    #         cv.imshow("image taken",frame)
+    #         print("is this picture good? [Y]es or [N]o")
+    #     if cv.waitKey(1) == ord('y'):
+    #         webcam_image = frame
+    #         cv.destroyAllWindows()
+    #         photo_mode = False
+
+
+    #     # if key%256 == 27:
+    #     #     # ESC pressed
+    #     #     print("Escape hit, closing...")
+    #     #     break
+
+    #     # elif key%256 == 32:
+    #     #     # SPACE pressed
+    #     #     # img_name = "opencv_frame_{}.png".format(img_counter)
+    #     #     image = frame
+    #     #     # print("{} written!".format(img_name))
+    # camera.release()
+
+    # cv.imshow("image taken: ", webcam_image)
+
     #* load the database of signs and images
     database = Database()
     database.load()
+
+    for i in range(0, len(database.hands)):
+        pprint(database.hands[i].fingers)
 
     #* load the different tools to be used.
     preprocesser = PreProcessor()
@@ -57,7 +105,7 @@ def main():
         hand.height = database.images[i].shape[1]
         hand.data_canvas = np.zeros((hand.width, hand.height, 3))
         hand.center, hand.palm_circumference = extractor.find_center(database.images[i])
-        print("hand.center: ", hand.center)
+        # print("hand.center: ", hand.center)
         hand.contours, _ = cv.findContours(database.images[i], cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
         
         #* drawing
@@ -84,19 +132,19 @@ def main():
         
         for point in filtered_points:
             top_of_palm = hand.center[1] - hand.palm_radius
-            # if point is above the circle on the palm of the hand
-            if point[1] < top_of_palm:
-                # cv.putText(hand.data_canvas, "finger", (point[0] - 20, point[1] + 20), font, 0.4, (255, 100, 100), 1)
-                #* drawing
-                cv.line(hand.data_canvas, hand.center, point, (255, 100, 100), 1)
+            #* if point is above the circle on the palm of the hand
+            # if point[1] < top_of_palm:
+            #     # cv.putText(hand.data_canvas, "finger", (point[0] - 20, point[1] + 20), font, 0.4, (255, 100, 100), 1)
+            #     #* drawing
+            #     # cv.line(hand.data_canvas, hand.center, point, (255, 100, 100), 1)
 
-                #* drawing
-                cv.circle(hand.data_canvas, point, 2, (255, 255, 0), 2)
+            #     #* drawing
+            #     cv.circle(hand.data_canvas, point, 2, (255, 255, 0), 2)
 
 
 
-        cv.circle(hand.data_canvas, hand.center, 2, Colors.center_color, -1)
-        cv.circle(hand.data_canvas, hand.center, hand.palm_circumference, Colors.center_color, 2)
+        # cv.circle(hand.data_canvas, hand.center, 2, Colors.center_color, -1)
+        # cv.circle(hand.data_canvas, hand.center, hand.palm_circumference, Colors.center_color, 2)
         
         #* show the database images
         # cv.imshow(hand.name + " datacanvas", hand.data_canvas)
@@ -105,8 +153,10 @@ def main():
     
 
     # ***************READ IMAGE AND PREPROCESS*********************
+    input_image = cv.imread("images/alphabet/W.png")
+    input_hand = Hand(name="input", image=input_image)
+    cv.imshow("raw input", input_hand.image)
 
-    input_hand = Hand(name="test hand", image="W")
 
     extraction_image = preprocesser.preprocess(input_hand.image)
     
@@ -138,19 +188,21 @@ def main():
     input_hand.center, input_hand.palm_radius = extractor.find_center(extraction_image)
     
     
-    input_hand.palm_circumference = cv.circle(
-        img=input_hand.data_canvas, 
-        center=input_hand.center, 
-        radius=input_hand.palm_radius, 
-        color=Colors.center_color,
-        thickness= 1)
-    input_hand.palm_center = cv.circle(
-        img=input_hand.data_canvas, 
-        center=input_hand.center, 
-        radius=2, 
-        color=Colors.center_color, 
-        thickness=1)
-    
+    # input_hand.palm_circumference = cv.circle(
+    #     img=input_hand.data_canvas, 
+    #     center=input_hand.center, 
+    #     radius=input_hand.palm_radius, 
+    #     color=Colors.center_color,
+    #     thickness= 1)
+    # input_hand.palm_center = cv.circle(
+    #     img=input_hand.data_canvas, 
+    #     center=input_hand.center, 
+    #     radius=2, 
+    #     color=Colors.center_color, 
+    #     thickness=1)
+
+    #* the width of a finger is a approximately a fourth of the width of the palm
+    input_hand.finger_width = input_hand.palm_radius / 2
 
     input_hand.contour_points = extractor.get_list_of_coordinates_from_contours(input_hand.contours)
     
@@ -186,12 +238,10 @@ def main():
     )
 
     # *get the ends value of the defects
-    defect_ends = extractor.get_defects_ends(input_hand.defects, input_hand.contours[0])
+    # defect_ends = extractor.get_defects_ends(input_hand.defects, input_hand.contours[0])
 
     #* sort the list according to their x value
-    defect_ends.sort(key=lambda x: x[0])
-    
-    # TODO this is where I am at. 
+    # defect_ends.sort(key=lambda x: x[0])
     
     filtered_points = extractor.filter_points(
         coordinate_list=hull_points, 
@@ -199,45 +249,53 @@ def main():
         
     
     print("no of points after filtering: ", len(filtered_points))
-
+    
+    #* sort the points according to their x position
+    filtered_points.sort(key=lambda x: x[0])
     for point in filtered_points:
+        pos_y = point[1]
         # if point is above the circle on the palm of the hand
-        if point[1] < input_hand.center[1] - input_hand.palm_radius:
+        if pos_y < input_hand.center[1] - input_hand.palm_radius:
+            
             #* length from palm center to fingertip
             line_length = extractor.length(point, input_hand.center)
             if (line_length > input_hand.palm_radius * 2.5):
                 #* here we finally add a finger to the hand.
                 input_hand.fingers.append(Finger(position=point))
-                print(f"line length: {line_length}")
+                print("detected a finger on the input")
+                # print(f"line length: {line_length}")
 
-            cv.line(input_hand.data_canvas, input_hand.center, point, (255, 100, 100), 1)
+            # cv.line(input_hand.data_canvas, input_hand.center, point, (255, 100, 100), 1)
 
-            cv.circle(input_hand.data_canvas, point, 2, (255, 255, 0), 2)
+            
             #*classifier.name_finger(point, test_hand.center)
 
             #* maybe implement if there is a valley in between, detect a finger
     
-    for finger in input_hand.fingers:
-        xpos = finger.position[0]
-        center_line = input_hand.center[0]
+    #* CHECKING X VALUE OF FINGER TIP TO DETERMINE FINGER IDENTITY
+    
+    # pprint(vars(input_hand.fingers[2]))
+    for i in range(0, len(input_hand.fingers)):
+        xpos: int = input_hand.fingers[i].position[0]
+        center_line: int = input_hand.center[0]
         
-        #* measuring x values to determine which finger it is
-        if xpos < center_line:
-            finger.title = Title.INDEX_FINGER
-            cv.line(input_hand.data_canvas, input_hand.center, finger.position, Colors.little_finger_color, 2)
-        elif xpos > center_line - 10:
-            if xpos < center + 10:
-                finger.title = Title.MIDDLE_FINGER
-                cv.line(input_hand.data_canvas, input_hand.center, finger.position, Colors.middle_finger_color, 2)
-        elif xpos > center_line:
-            finger.title = Title.RING_FINGER
-            cv.line(input_hand.data_canvas, input_hand.center, finger.position, Colors.index_finger_color, 2)
-    # for point in defect_fars:
-    #     cv.circle(test_hand.data_canvas, point, 2, 
-    #     (100, 0, 100), 2)
+        #* if to the left
+        if xpos < (center_line - 5):
+            input_hand.fingers[i].title = Title.RING_FINGER
+        #* if in center
+        elif xpos > (center_line - 10) and xpos < (center_line + 10):
+                input_hand.fingers[i].title = Title.MIDDLE_FINGER
+                
+        #* if to the right
+        elif xpos > (center_line + 5):
+            input_hand.fingers[i].title = Title.INDEX_FINGER
+            # cv.line(input_hand.data_canvas, input_hand.center, input_hand.fingers[i].position, Colors.index_finger_color, 2)
+        else:
+            print("wat")
+    
 
-    # # TODO add to hand
-
+    for i in range(0, len(input_hand.fingers)):
+        pprint(vars(input_hand.fingers[i]))
     # defects_image = np.zeros(original_img_size)
 
     # extractor.draw_defects(
@@ -246,16 +304,31 @@ def main():
     #     output_image=test_hand.data_canvas
     # )
 
-    # cv.imshow("HAND DATA", test_hand.data_canvas)
-    # input_hand.imshow_data_canvas()
+    input_hand.imshow_data_canvas()
 
-    cv.imshow("input hand", input_hand.data_canvas)
+
+    # cv.imshow("input hand", input_hand.data_canvas)
     input_hand.print_data()
 
     # for reference in database:
         # if input_hand.
 
-    # print(classifier.compare_states(test_hand, REFERENCE_W))
+    # print(database.hands[8].fingers[0].title)
+    for finger in database.hands[8].fingers:
+        print("database: ", finger.title)
+    for finger in input_hand.fingers:
+        print("input hand: ", finger.title)
+    
+    # for i in range(0, len(database.hands)):
+    #     for e in range(0, (len(database.hands[i].fingers))):
+    #         if isinstance(database.hands[i].fingers[e])
+
+    # if input_hand.fingers[0].title == database.hands[22].fingers[0].title:
+    #     print("first is same")
+    # if input_hand.fingers[1].title == database.hands[22].fingers[1].title:
+    #     print("second is same")
+    # if input_hand.fingers[2].title == database.hands[22].fingers[2].title:
+    #     print("second is same")
     
 
     cv.waitKey(0)
