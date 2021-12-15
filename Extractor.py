@@ -207,7 +207,6 @@ class Extractor:
 
         return start
 
-
     def filter_points(self, coordinate_list: list, threshold: int):
         filtered_points = []
         for point in coordinate_list:
@@ -224,7 +223,6 @@ class Extractor:
         
         print("filter_points returns: ", len(filtered_points), " points")
         return filtered_points
-
 
     def detect_fingers(self, extractor, filtered_points, input_hand):
         for point in filtered_points:
