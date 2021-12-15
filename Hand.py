@@ -1,17 +1,9 @@
 from dataclasses import dataclass, field
 from enum import Enum, auto
-from os import stat
 import cv2 as cv
 from cv2 import bitwise_not, data
 import numpy as np
-from PIL import Image
-from PIL import ImageDraw
-from numpy.core.defchararray import center
-from numpy.lib.histograms import _histogram_bin_edges_dispatcher
-import math
 import Colors
-import Draw
-import Image
 from typing import Tuple
 from pprint import pprint
 
@@ -42,12 +34,17 @@ class Finger:
     """Generic class for a finger detected on the hand (outside of the palm)."""
     title: Title
     position: tuple
+    length: int
     def __init__(
         self, 
         title: Title = Title.NOT_SET, 
-        position: tuple = (-1, -1)):
+        position: tuple = (-1, -1), length: int = 1):
         self.title: title
         self.position = position
+        self.length = length
+    
+    def __eq__(self, other):
+        return self.title == other.title
         
 
 class Orientation(Enum):
@@ -123,10 +120,12 @@ class Hand:
                 line_color = Colors.ring_finger_color
             elif finger.title == Title.LITTLE_FINGER:
                 line_color = Colors.little_finger_color
+            elif finger.title == Title.NOT_SET:
+                line_color = Colors.not_set_color
 
             #* drawing a line with the given color
             cv.line(self.data_canvas, self.center, finger.position, line_color, 1)
-            cv.putText(self.data_canvas, str(finger.title), (finger.position[0], (finger.position[1] + 30)), font, 0.4, line_color, 1)
+            cv.putText(self.data_canvas, str(finger.title.name), (finger.position[0], (finger.position[1] + 30)), font, 0.4, line_color, 1)
             cv.circle(self.data_canvas, finger.position, 8, line_color, -1)
         if self.center != None:
             cv.circle(self.data_canvas, self.center, 2, (200, 100, 50), -1)
