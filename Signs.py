@@ -1,4 +1,4 @@
-from Hand import Hand, Finger, Name, state
+from Hand import Hand, Finger, Title, State
 from Visualisation import Visualisation, ImageVersion
 import cv2 as cv
 # hole in shape: O
@@ -28,11 +28,11 @@ hand_a = Hand.Hand(
     version=ImageVersion.REFERENCE
     )
 )
-hand_a.index_finger.set_finger_state(state.IN)
-hand_a.middle_finger.set_finger_state(state.IN)
-hand_a.ring_finger.set_finger_state(state.IN)
-hand_a.little_finger.set_finger_state(state.IN)
-hand_a.thumb_finger.set_finger_state(state.OUT)
+hand_a.index_finger.set_finger_state(State.IN)
+hand_a.middle_finger.set_finger_state(State.IN)
+hand_a.ring_finger.set_finger_state(State.IN)
+hand_a.little_finger.set_finger_state(State.IN)
+hand_a.thumb_finger.set_finger_state(State.OUT)
 
 hand_f = Hand(
     image=Visualisation(
@@ -43,11 +43,11 @@ hand_f = Hand(
     version=ImageVersion.REFERENCE
     )
 )
-hand_f.index.set_finger_state(state.OUT)
-hand_f.middle.set_finger_state(state.OUT)
-hand_f.ring.set_finger_state(state.OUT)
-hand_f.little.set_finger_state(state.OUT)
-hand_f.thumb.set_finger_state(state.TOUCHING_INDEX)
+hand_f.finger1.set_finger_state(State.OUT)
+hand_f.finger2.set_finger_state(State.OUT)
+hand_f.finger3.set_finger_state(State.OUT)
+hand_f.finger4.set_finger_state(State.OUT)
+hand_f.finger.set_finger_state(State.TOUCHING_INDEX)
 
 
 hand_w = Hand(
@@ -60,11 +60,11 @@ hand_w = Hand(
     )
 )
 
-hand_w.index.set_finger_state(state.OUT)
-hand_w.middle.set_finger_state(state.OUT)
-hand_w.ring.set_finger_state(state.OUT)
-hand_w.little.set_finger_state(state.IN)
-hand_w.thumb.set_finger_state(state.TOUCHING_LITTLE)
+hand_w.finger1.set_finger_state(State.OUT)
+hand_w.finger2.set_finger_state(State.OUT)
+hand_w.finger3.set_finger_state(State.OUT)
+hand_w.finger4.set_finger_state(State.IN)
+hand_w.finger.set_finger_state(State.TOUCHING_LITTLE)
 hand_w.center = (100, 100)
 hand_w.index_tip_coords = (100, 100)
 hand_w.index_middle_coords = (100, 100)

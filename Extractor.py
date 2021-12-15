@@ -10,6 +10,7 @@ import math
 import PreProcessing
 import Colors
 from math import sqrt
+from Hand import Finger
 
 class Extractor:
 
@@ -20,7 +21,7 @@ class Extractor:
 
         min_val, max_val, min_loc, max_loc = cv.minMaxLoc(dist_transform, mask)
         
-        cv.imshow("distance transform", mask)
+        # cv.imshow("distance transform", mask)
 
         return max_loc, int(max_val)
 
@@ -117,6 +118,7 @@ class Extractor:
             s, e, f, d = defects[i, 0]
             start = tuple(cnt[s][0])
             start_points.append(start)
+            print("get_defect_starts returns: ", start_points)
         return start_points
 
     def get_defects_ends(self, defects: np.ndarray, cnt) -> list:
@@ -128,6 +130,7 @@ class Extractor:
             s, e, f, d = defects[i, 0]
             end = tuple(cnt[e][0])
             end_points.append(end)
+            print("get_defect_ends returns: ", end_points)
         return end_points
     
     def get_defects_fars(self, defects: np.ndarray, cnt) -> list:
@@ -139,6 +142,7 @@ class Extractor:
             s, e, f, d = defects[i, 0]
             far = tuple(cnt[e][0])
             far_points.append(far)
+            print("get_defect_fars returns: ", far_points)
         return far_points
 
 
@@ -198,24 +202,40 @@ class Extractor:
             #     fontScale=1, 
             #     color=(100, 100, 100)
             # )
+        
+        print("draw_defects returns: ", start)
 
         return start
 
+    def filter_points(self, coordinate_list: list, threshold: int):
+        filtered_points = []
+        for point in coordinate_list:
+            is_valid = True
+            for compare_point in filtered_points:
+                dist = self.length(compare_point, point)
+                
+                if dist < threshold:
+                    is_valid = False
+                    break
+            
+            if is_valid:
+                filtered_points.append(point)
+        
+        print("filter_points returns: ", len(filtered_points), " points")
+        return filtered_points
 
-    def filter_arr(self, coordinate_list: list, offset: int):
-        # sort elements after y-value
-        coordinate_list.sort(key=lambda x: x[1])
-        # list to return
-        filtered_nums = tuple
-        for pair in coordinate_list:
-            # for each level of offset
-            for x in range(-offset, offset+1):
-                if any(pair[1]+x in coordinate_list[pair[1]]):
-                    continue
-                else:
-                    filtered_nums.add(pair)
-        return filtered_nums
-
+    def detect_fingers(self, extractor, filtered_points, input_hand):
+        for point in filtered_points:
+            point_y = point[1]
+            #* if point is above the center of the palm
+            if point_y < input_hand.center[1]:
+                #* length from palm center to fingertip
+                dist_from_center = extractor.length(point, input_hand.center)
+                if (dist_from_center > input_hand.palm_radius* 1.8):
+                # if (line_length > input_hand.palm_radius * 2.0):
+                    #* here we finally add a finger to the hand.
+                    input_hand.fingers.append(Finger(position=point, length=dist_from_center))
+                    print("detected a finger on the input")
 
     def length(self, point1: tuple, point2: tuple) -> int:
         # * pythagoras to find length from center to point
@@ -224,6 +244,7 @@ class Extractor:
 
         length_squared = pow(len_hori, 2) + pow(len_vert, 2)
         length = int(sqrt(length_squared))
+        # print("length returns: ", length)
         return length
 
     # TODO DO THIS
@@ -233,110 +254,7 @@ class Extractor:
             point = numpy_point.tolist()
             x, y = point[0]
             list_of_coordinates.append([x, y])
+        print("get_list_of_coordinates returns: ", len(list_of_coordinates))
         return list_of_coordinates
-
-
-    def get_number_of_fingers(self, defects, contours, analyze_image, draw_image: np.ndarray):
-        """Uses hull defects to count the nmber of fingers outside of the palm."""
-
-        if defects is not None:
-            cnt = 0
-
-        for i in range(defects.shape[0]):
-            s, e, f, d = defects[i, 0]
-            start = tuple(contours[s][0])
-            end = tuple(contours[e][0])
-            far = tuple(contours[f][0])
-            # cv.line(draw_image, start, end, Colors.hull_color, 2)
-
-            # TODO put center of hand in this function
-            cv.line(draw_image, get_palm_center(analyze_image), end, Colors.hull_color, 1)
-            cv.circle(draw_image, far, 5, Colors.defect_color, -1)
-
-        # THIS PART CALCULATES THE ANGLES BETWEEN THE DEFECTS
-        # for i in range(defects.shape[0]):  # calculate the angle
-        #     s, e, f, d = defects[i][0]
-        #     start = tuple(contours[s][0])
-        #     end = tuple(contours[e][0])
-        #     far = tuple(contours[f][0])
-        #     print(Colors.blue+"start: ", start, " end: ", end, " far ", far, "" + Colors.white)
-        #     cv.circle(draw_image, start, 4, [0, 255, 0], -1)
-
-        #     a = np.sqrt(
-        #         (end[0] - start[0]) ** 2 
-        #         + (end[1] - start[1]) ** 2)
-        #     b = np.sqrt(
-        #         (far[0] - start[0]) ** 2 
-        #         + (far[1] - start[1]) ** 2)
-        #     c = np.sqrt(
-        #         (end[0] - far[0]) ** 2 
-        #         + (end[1] - far[1]) ** 2)
-
-        #     angle = np.arccos(
-        #         (b ** 2 + c ** 2 - a ** 2) 
-        #         / (2 * b * c))  # cosine theorem
-
-        #     if angle <= np.pi / 1.4:  # angle less than 90 degree, treat as fingers
-        #         cnt += 1
-        #         cv.circle(draw_image, far, 4, [255, 0, 0], -1)
-
-        # if cnt > 0:
-        #     cnt = cnt + 1
-
-        # cv.putText(draw_image, str(cnt), (0, 50), cv.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv.LINE_AA)
-        return defects
-
-    # helper function to draw on the image.
-    # def draw_point(_img: Image, _x: int, _y: int, color):
-
-        rad = 2
-        draw = ImageDraw.Draw(_img)
-        draw.ellipse(
-            (
-                _x - rad, _y - rad,
-                _x + rad, _y + rad
-            ), 
-            fill=color, 
-            outline=100, 
-            width=1
-        )
-
-    # takes a thresholded Image
-    # def detectBlobs(_img):
-        # Setup SimpleBlobDetector parameters.
-        params = cv.SimpleBlobDetector_Params()
-
-        # Change thresholds
-        params.minThreshold = 10
-        params.maxThreshold = 200
-
-        # Filter by Area.
-        params.filterByArea = True
-        params.minArea = 1500
-
-        # Filter by Circularity
-        params.filterByCircularity = True
-        params.minCircularity = 0.1
-
-        # Filter by Convexity
-        params.filterByConvexity = True
-        params.minConvexity = 0.87
-
-        # Filter by Inertia
-        params.filterByInertia = True
-        params.minInertiaRatio = 0.01
-
-        # Create a detector with the parameters
-        detector = cv.SimpleBlobDetector_create(params)
-
-        # Detect blobs.
-        keypoints = detector.detect(np.array(_img))
-
-        # Draw detected blobs as red circles.
-        # cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS ensures
-        # the size of the circle corresponds to the size of blob
-        im_with_keypoints = cv.drawKeypoints(np.array(np.array(_img)), keypoints, np.array([]), (0, 0, 0),
-                                            cv.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
-        return im_with_keypoints
 
     

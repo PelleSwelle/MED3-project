@@ -49,23 +49,22 @@ class PreProcessor:
         """ combining blurring, grayscalling, thresholding, contouring, and cropping into one"""
 
         gaussian_blurred = cv.GaussianBlur(image, [5, 5], 1)
+        cv.imshow("gaussian blurred", gaussian_blurred)
         
         grayscaled = cv.cvtColor(gaussian_blurred, cv.COLOR_BGR2GRAY)
-        
+        cv.imshow("gaussian_blurred,  grayscaled", grayscaled)
         ret, thresh = cv.threshold(grayscaled, 245, 255, cv.THRESH_BINARY_INV)
+        cv.imshow("blurred, grayscaled, thresholded", thresh)
         contours, hierarchy = cv.findContours(thresh, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
         
-       
-        contours_drawn = np.zeros(thresh.shape, dtype=np.uint8)
+
         
         x, y, w, h = cv.boundingRect(contours[0])
-        cropped_binarized_image = thresh[y:y+h, x:x+w]
-        # cropped_contoured_image = contours_drawn[y:y+h, x:x+w]
-        
-        
-        print(f"image size is now: {cropped_binarized_image.shape[0]} x {cropped_binarized_image.shape[1]}")
-        
-        # TODO here goes normalize to size of palm 
 
+        cropped_binarized_image = thresh[y:y+h, x:x+w]
+        
+        
+        print(Colors.blue + f"cropped input image to: {cropped_binarized_image.shape[0]} x {cropped_binarized_image.shape[1]}" + Colors.white)
+        
         return cropped_binarized_image
    
