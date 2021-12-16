@@ -7,7 +7,7 @@ from Database import Database
 import Colors
 from Extractor import Extractor
 from Hand import Finger, Title, Hand, Orientation
-from Image import Image, ImageVersion
+
 from PreProcessor import PreProcessor
 from math import dist, sqrt
 import os
@@ -29,14 +29,6 @@ def fill_hull_list(hand, hull_list):
         hull_list.append(hull)
 
 
-def get_version(version: ImageVersion):
-    image_to_return: Image
-    for image in steps:
-        if image.version == version:
-            image_to_return = image
-    return image_to_return
-
-
 def main():
     #* clear the console
     clear()
@@ -51,7 +43,7 @@ def main():
     #* load the different tools to be used.
     preprocesser = PreProcessor()
     extractor = Extractor()
-    classifier = Classifier()
+    # classifier = Classifier()
 
     #* filling database with data
     i = 0
@@ -97,7 +89,7 @@ def main():
     
 
     # ***************READ IMAGE AND PREPROCESS*********************
-    input_image = cv.imread("images/alphabet/L.png")
+    input_image = cv.imread("images/alphabet/W.png")
     input_hand = Hand(name="input", image=input_image)
     cv.imshow("raw input", input_hand.image)
 
@@ -121,61 +113,29 @@ def main():
         method=cv.CHAIN_APPROX_SIMPLE)
 
 
-
-    cv.drawContours(
-            image=input_hand.data_canvas, 
-            contours=input_hand.contours, 
-            contourIdx= -1, 
-            color=Colors.contours_color, 
-            thickness=1)
-
     input_hand.center, input_hand.palm_radius = extractor.find_center(extraction_image)
     
     
-    input_hand.palm_circumference = cv.circle(
-        img=input_hand.data_canvas, 
-        center=input_hand.center, 
-        radius=input_hand.palm_radius, 
-        color=Colors.center_color,
-        thickness= 1)
-    input_hand.palm_center = cv.circle(
-        img=input_hand.data_canvas, 
-        center=input_hand.center, 
-        radius=2, 
-        color=Colors.center_color, 
-        thickness=1)
+    # input_hand.palm_circumference = 
+    # input_hand.palm_center = 
 
     #* the width of a finger is a approximately a fourth of the width of the palm
     input_hand.finger_width = input_hand.palm_radius / 2
 
     input_hand.contour_points = extractor.get_list_of_coordinates_from_contours(input_hand.contours)
     
-    # for coordinate_set in test_hand.contour_points:
-    #     cv.circle(
-    #         img=test_hand.data_canvas, 
-    #         center=(coordinate_set[0], coordinate_set[1]), 
-    #         radius=10, 
-    #         color=Colors.contours_color, 
-    #         thickness=1)
-
-    
-
-    #     # Find the convex hull object for each contour
+    #* Find the convex hull object for each contour
     hull_list = []
     fill_hull_list(input_hand, hull_list)
-    # for i in range(len(input_hand.contours)):
-    #     hull = cv.convexHull(input_hand.contours[i])
-    #     hull_list.append(hull)
     
     input_hand.hull = hull_list
 
-    cv.drawContours(input_hand.data_canvas, input_hand.hull, -2, Colors.hull_color, 1)
-
+    
     hull_points = extractor.get_list_of_coordinates_from_contours(input_hand.hull)
     print(f"Number of Hull points: {len(hull_points)}")
-    # for point in hull_points:
-    #     cv.circle(test_hand.data_canvas, point, 2, (240, 20, 10), -1)
-    #     cv.line(test_hand.data_canvas, test_hand.center, point, (240, 100, 0), 1)
+    for point in hull_points:
+        cv.circle(input_hand.data_canvas, point, 2, (240, 20, 10), -1)
+        # cv.line(input_hand.data_canvas, input_hand.center, point, (240, 100, 0), 1)
     
 
     input_hand.defects = extractor.extract_defects(
@@ -200,41 +160,15 @@ def main():
 
     #* APPENDING FINGERS TO THE HAND
     extractor.detect_fingers(extractor, filtered_points, input_hand)
-                # print(f"line length: {line_length}")
-
-                # cv.line(input_hand.data_canvas, input_hand.center, point, (255, 100, 100), 1)
-
-            
-            #*classifier.name_finger(point, test_hand.center)
-
-            #* maybe implement if there is a valley in between, detect a finger
-    
+                
     #* CHECKING X VALUE OF FINGER TIP TO DETERMINE FINGER IDENTITY
     
 
 
-    # center_x: int = input_hand.center[0]
-    # grid_width = center_x * 2 / 5
-    # left2 = int(grid_width)
-    # left1 = int(grid_width * 2)
-    # middle = int(grid_width * 3)
-    # right1 = int(grid_width * 4)
-    # right2 = int(grid_width * 5)
+    
     palm_top = input_hand.center[1] - input_hand.palm_radius
     thumb_threshold = palm_top - 30
-    # #* GUIDELINES - ONLY FOR DEBUGGING
-    # guideline_color = (50, 50, 50)
-    # cv.line(input_hand.data_canvas, (0, thumb_threshold), (input_hand.width, thumb_threshold), (255, 255, 255), 1)
-    # cv.line(input_hand.data_canvas, (left2, 0), (left2, 200), guideline_color, 1)
-    # cv.line(input_hand.data_canvas, (left1, 0), (left1, 200), guideline_color, 1)
-    # cv.line(input_hand.data_canvas, (middle, 0), (middle, 200), guideline_color, 1)
-    # cv.line(input_hand.data_canvas, (right1, 0), (right1, 200), guideline_color, 1)
-    # cv.line(input_hand.data_canvas, (right2, 0), (right2, 200), guideline_color, 1)
     
-
-    
-
-
     for i in range(0, len(input_hand.fingers)):
 
         #* x and y values for comparing
@@ -246,32 +180,24 @@ def main():
         approx_little_length = palm_radius * 2.6
         
         buffer = 10
+        
         left_of_palm = finger_x < palm_center[0] - input_hand.palm_radius
         right_of_palm = finger_x > palm_center[0] + input_hand.palm_radius
+        
         above_palm_line = finger_y < thumb_threshold
         under_palm_line = finger_y > thumb_threshold
+        
         at_palm_center_x = finger_x > palm_center[0] - 10 and finger_x < input_hand.center[0] + 10
         ring_finger_position = left_of_palm and finger_length > input_hand.palm_radius * 1.2
         little_finger_position = left_of_palm and finger_length < input_hand.palm_radius * 1.2
+        
         left_of_center = finger_x < palm_center[0]
         right_of_center = palm_center[0] + buffer < finger_x
+        
         straight_above = palm_center[0] - buffer < finger_x < palm_center[0] + buffer
         center_to_left = palm_center[0] - palm_radius - buffer < finger_x < palm_center[0] + palm_radius
         # < palm_center[0] + palm_radius + buffer
 
-
-        # down_and_right = finger_x > input_hand.center[0] + input_hand.palm_radius and finger_y > thumb_threshold  
-        # left_and_down = finger_x < input_hand.center[0] - input_hand.fingers[i].length
-        # if right_of_palm and under_palm_line:
-        #     input_hand.fingers[i].title = Title.THUMB_FINGER
-        # elif right_of_palm and above_palm_line:
-        #     input_hand.fingers[i].title = Title.INDEX_FINGER
-        # elif at_palm_center_x and above_palm_line:
-        #     input_hand.fingers[i].title = Title.MIDDLE_FINGER
-        # elif ring_finger_position:
-        #     input_hand.fingers[i].title = Title.RING_FINGER
-        # elif little_finger_position:
-        #     input_hand.fingers[i].title = Title.LITTLE_FINGER
         if finger_length < approx_little_length and left_of_center:
             input_hand.fingers[i].title = Title.LITTLE_FINGER
         elif finger_length <approx_little_length and right_of_palm:

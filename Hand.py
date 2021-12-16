@@ -122,11 +122,36 @@ class Hand:
                 line_color = Colors.little_finger_color
             elif finger.title == Title.NOT_SET:
                 line_color = Colors.not_set_color
-
+            
             #* drawing a line with the given color
             cv.line(self.data_canvas, self.center, finger.position, line_color, 1)
             cv.putText(self.data_canvas, str(finger.title.name), (finger.position[0], (finger.position[1] + 30)), font, 0.4, line_color, 1)
             cv.circle(self.data_canvas, finger.position, 8, line_color, -1)
+        
+        cv.drawContours(
+            image=self.data_canvas, 
+            contours=self.contours, 
+            contourIdx= -1, 
+            color=Colors.contours_color, 
+            thickness=1)
+        
+        cv.circle(
+            img=self.data_canvas, 
+            center=self.center, 
+            radius=2, 
+            color=Colors.center_color, 
+            thickness=1)
+        
+        cv.circle(
+            img=self.data_canvas, 
+            center=self.center, 
+            radius=self.palm_radius, 
+            color=Colors.center_color,
+            thickness= 1)
+        
+        cv.drawContours(self.data_canvas, self.hull, -2, Colors.hull_color, 1)
+
+
         if self.center != None:
             cv.circle(self.data_canvas, self.center, 2, (200, 100, 50), -1)
             # cv.circle(self.data_canvas, self.center, self.palm_radius, (200, 100, 50), 1)

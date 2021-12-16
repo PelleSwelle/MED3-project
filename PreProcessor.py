@@ -9,7 +9,6 @@ from numpy.lib.histograms import _histogram_bin_edges_dispatcher
 import math
 import Colors
 from Hand import Hand
-from Image import Image
 
 # TODO this should be an interface
 class PreProcessor:

@@ -2,12 +2,6 @@ from dataclasses import dataclass
 from enum import Enum, auto
 import cv2 as cv
 import numpy as np
-from copy import copy
-from PIL import Image
-from PIL import ImageDraw
-from numpy.lib.histograms import _histogram_bin_edges_dispatcher
-import math
-import PreProcessing
 import Colors
 from math import sqrt
 from Hand import Finger
@@ -25,19 +19,19 @@ class Extractor:
 
         return max_loc, int(max_val)
 
-    def extract_contours(self, image: Image) -> list:
-        contours, hierarchy = cv.findContours(
-            image=image.img_array, 
-            mode=cv.RETR_TREE, 
-            method=cv.CHAIN_APPROX_SIMPLE
-        )
-        contours = max(contours, key=lambda x: cv.contourArea(x))
+    # def extract_contours(self, image: Image) -> list:
+    #     contours, hierarchy = cv.findContours(
+    #         image=image.img_array, 
+    #         mode=cv.RETR_TREE, 
+    #         method=cv.CHAIN_APPROX_SIMPLE
+    #     )
+    #     contours = max(contours, key=lambda x: cv.contourArea(x))
         
-        # return contours, hierarchy
-        return contours
+    #     # return contours, hierarchy
+    #     return contours
 
 
-    def draw_contours(self, image: Image, contours: list) -> np.ndarray:
+    # def draw_contours(self, image: Image, contours: list) -> np.ndarray:
         self.canvas = np.zeros(
             (image.img_array.shape[0], 
             image.img_array.shape[1]
@@ -69,7 +63,7 @@ class Extractor:
         return hull
 
 
-    def draw_hull(self, image: Image, contours: list) -> np.array:
+    # def draw_hull(self, image: Image, contours: list) -> np.array:
         canvas_height = image.img_array.shape[0]
         canvas_width = image.img_array.shape[1]
 
@@ -110,102 +104,104 @@ class Extractor:
 
 
 
-    def get_defects_starts(self, defects: np.ndarray, cnt) -> list:
-        hull = cv.convexHull(cnt, returnPoints=False)
-        defects = cv.convexityDefects(cnt, hull)
-        start_points = []
-        for i in range(defects.shape[0]):
-            s, e, f, d = defects[i, 0]
-            start = tuple(cnt[s][0])
-            start_points.append(start)
-            print("get_defect_starts returns: ", start_points)
-        return start_points
+    # def get_defects_starts(self, defects: np.ndarray, cnt) -> list:
+    #     hull = cv.convexHull(cnt, returnPoints=False)
+    #     defects = cv.convexityDefects(cnt, hull)
+    #     start_points = []
+    #     for i in range(defects.shape[0]):
+    #         s, e, f, d = defects[i, 0]
+    #         start = tuple(cnt[s][0])
+    #         start_points.append(start)
+    #         print("get_defect_starts returns: ", start_points)
+    #     return start_points
 
-    def get_defects_ends(self, defects: np.ndarray, cnt) -> list:
-        hull = cv.convexHull(cnt, returnPoints=False)
-        defects = cv.convexityDefects(cnt, hull)
-        end_points = []
+
+    # def get_defects_ends(self, defects: np.ndarray, cnt) -> list:
+    #     hull = cv.convexHull(cnt, returnPoints=False)
+    #     defects = cv.convexityDefects(cnt, hull)
+    #     end_points = []
         
-        for i in range(defects.shape[0]):
-            s, e, f, d = defects[i, 0]
-            end = tuple(cnt[e][0])
-            end_points.append(end)
-            print("get_defect_ends returns: ", end_points)
-        return end_points
+    #     for i in range(defects.shape[0]):
+    #         s, e, f, d = defects[i, 0]
+    #         end = tuple(cnt[e][0])
+    #         end_points.append(end)
+    #         print("get_defect_ends returns: ", end_points)
+    #     return end_points
     
-    def get_defects_fars(self, defects: np.ndarray, cnt) -> list:
-        hull = cv.convexHull(cnt, returnPoints=False)
-        defects = cv.convexityDefects(cnt, hull)
-        far_points = []
+
+    # def get_defects_fars(self, defects: np.ndarray, cnt) -> list:
+    #     hull = cv.convexHull(cnt, returnPoints=False)
+    #     defects = cv.convexityDefects(cnt, hull)
+    #     far_points = []
         
-        for i in range(defects.shape[0]):
-            s, e, f, d = defects[i, 0]
-            far = tuple(cnt[e][0])
-            far_points.append(far)
-            print("get_defect_fars returns: ", far_points)
-        return far_points
+    #     for i in range(defects.shape[0]):
+    #         s, e, f, d = defects[i, 0]
+    #         far = tuple(cnt[e][0])
+    #         far_points.append(far)
+    #         print("get_defect_fars returns: ", far_points)
+    #     return far_points
 
 
-    def draw_defects(
-        self, 
-        defects: np.ndarray, 
-        cnt, 
-        output_image: np.ndarray) -> None:
+    # def draw_defects(
+    #     self, 
+    #     defects: np.ndarray, 
+    #     cnt, 
+    #     output_image: np.ndarray) -> None:
         
-        hull = cv.convexHull(cnt, returnPoints = False)
-        defects = cv.convexityDefects(cnt, hull)
+    #     hull = cv.convexHull(cnt, returnPoints = False)
+    #     defects = cv.convexityDefects(cnt, hull)
 
-        for i in range(defects.shape[0]):
-            s,e,f,d = defects[i,0]
-            start = tuple(cnt[s][0])
-            end = tuple(cnt[e][0])
-            far = tuple(cnt[f][0])
-            distance = d
-            print(f"distance, {distance}")
+    #     for i in range(defects.shape[0]):
+    #         s,e,f,d = defects[i,0]
+    #         start = tuple(cnt[s][0])
+    #         end = tuple(cnt[e][0])
+    #         far = tuple(cnt[f][0])
+    #         distance = d
+    #         print(f"distance, {distance}")
 
-            # cv.line(output_image,start,end,[0,255,0],1)
+    #         # cv.line(output_image,start,end,[0,255,0],1)
             
-            # LINES FROM VALLIES TO TIPS
-            # cv.line(
-            #     img=output_image,
-            #     pt1=start,
-            #     pt2=far,
-            #     color=Colors.defect_color,
-            #     thickness=1)
-            cv.line(
-                img=output_image,
-                pt1=far,
-                pt2=end,
-                color=Colors.defect_color,
-                thickness=1)
-            cv.line(output_image,start,end,[0,255,0],2)
+    #         # LINES FROM VALLIES TO TIPS
+    #         # cv.line(
+    #         #     img=output_image,
+    #         #     pt1=start,
+    #         #     pt2=far,
+    #         #     color=Colors.defect_color,
+    #         #     thickness=1)
+    #         cv.line(
+    #             img=output_image,
+    #             pt1=far,
+    #             pt2=end,
+    #             color=Colors.defect_color,
+    #             thickness=1)
+    #         cv.line(output_image,start,end,[0,255,0],2)
             
-            cv.circle(
-                img=output_image,
-                center=start,
-                radius=1,
-                color=(200, 100, 0),
-                thickness=-1)
-            cv.circle(
-                img=output_image,
-                center=end,
-                radius=1,
-                color=(0, 200, 100),
-                thickness=-1)
-            # cv.line(output_image,start,end,[0,255,0],2)
-            # cv.circle(points_canvas,far,5,Colors.defect_color,-1)
-            # cv.putText(
-            #     img=output_image, 
-            #     text="end", 
-            #     org=end, 
-            #     fontFace=cv.FONT_HERSHEY_SIMPLEX, 
-            #     fontScale=1, 
-            #     color=(100, 100, 100)
-            # )
+    #         cv.circle(
+    #             img=output_image,
+    #             center=start,
+    #             radius=1,
+    #             color=(200, 100, 0),
+    #             thickness=-1)
+    #         cv.circle(
+    #             img=output_image,
+    #             center=end,
+    #             radius=1,
+    #             color=(0, 200, 100),
+    #             thickness=-1)
+    #         # cv.line(output_image,start,end,[0,255,0],2)
+    #         # cv.circle(points_canvas,far,5,Colors.defect_color,-1)
+    #         # cv.putText(
+    #         #     img=output_image, 
+    #         #     text="end", 
+    #         #     org=end, 
+    #         #     fontFace=cv.FONT_HERSHEY_SIMPLEX, 
+    #         #     fontScale=1, 
+    #         #     color=(100, 100, 100)
+    #         # )
         
-        print("draw_defects returns: ", start)
+    #     print("draw_defects returns: ", start)
 
-        return start
+    #     return start
 
     def filter_points(self, coordinate_list: list, threshold: int):
         filtered_points = []
