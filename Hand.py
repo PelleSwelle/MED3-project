@@ -1,7 +1,5 @@
-from dataclasses import dataclass, field
 from enum import Enum, auto
 import cv2 as cv
-from cv2 import bitwise_not, data
 import numpy as np
 import Colors
 from typing import Tuple
@@ -16,18 +14,6 @@ class Title(Enum):
     RING_FINGER = auto()
     LITTLE_FINGER = auto()
     THUMB_FINGER = auto()
-
-@dataclass
-class Hull:
-    points: np.ndarray
-    line_color: tuple
-    point_color: tuple
-
-    def display_points(self):
-        raise NotImplementedError
-
-    def display_points(self):
-        raise NotImplementedError
 
 
 class Finger:
@@ -56,8 +42,7 @@ class Orientation(Enum):
 
 
 class Hand:
-    """Generic class containing all the data that the hand should contain.
-    always takes a picture of a hand"""
+    """Generic class containing all the data that the hand should contain."""
     name: str
     
     #* fingers will be added when found 
@@ -72,7 +57,7 @@ class Hand:
     center: tuple
     palm_radius: int
     contour_points: list
-    hull: Hull
+    hull: list
     defects: list
     orientation: Orientation = Orientation.NOT_SET
     finger_width: int
@@ -82,8 +67,6 @@ class Hand:
     
     
     def __init__(self, image: np.ndarray, name: str = "", width: int = 0, height: int = 0, palm_radius: int = 0, fingers: list = []) -> None:
-
-        # self.image = cv.imread(f"images/{image}.jpg")
         self.image = image
         self.name = name
         self.image = image
@@ -95,21 +78,10 @@ class Hand:
         self.finger_width = self.palm_radius / 4
 
 
-
-    # TODO this could be a dict
-
-
     def imshow_data_canvas(self) -> None:
-        # cv.putText(self.data_canvas, self.name, (0, self.height), font, 0.6, (255, 0, 100), 2)
-        
-
-        # print("number of fingers: ", len(self.fingers))
-        # for finger in self.fingers:
-        #     print("fingername: ", finger.title)
-            
-        #* draw fingers
+        """Draws all the available data to the data canvas and displays it in a openCV window"""
         for finger in self.fingers:
-            #* choosing a color
+            #* CHOOSING COLORS
             if finger.title == Title.THUMB_FINGER:
                 line_color = Colors.thumb_color
             elif finger.title == Title.INDEX_FINGER:
@@ -123,18 +95,23 @@ class Hand:
             elif finger.title == Title.NOT_SET:
                 line_color = Colors.not_set_color
             
-            #* drawing a line with the given color
+            #* DRAW FINGER LINES
             cv.line(self.data_canvas, self.center, finger.position, line_color, 1)
-            cv.putText(self.data_canvas, str(finger.title.name), (finger.position[0], (finger.position[1] + 30)), font, 0.4, line_color, 1)
+            #* DRAW POINT AT FINGERTIP
             cv.circle(self.data_canvas, finger.position, 8, line_color, -1)
+            #* WRITE NAME OF FINGER ON FINGER
+            cv.putText(self.data_canvas, str(finger.title.name), (finger.position[0], (finger.position[1] + 30)), font, 0.4, line_color, 1)
         
+
+        #* DRAWING THE CONTOURS
         cv.drawContours(
             image=self.data_canvas, 
             contours=self.contours, 
             contourIdx= -1, 
             color=Colors.contours_color, 
             thickness=1)
-        
+
+        #* DRAWING THE CENTER POINT
         cv.circle(
             img=self.data_canvas, 
             center=self.center, 
@@ -142,6 +119,7 @@ class Hand:
             color=Colors.center_color, 
             thickness=1)
         
+        #* DRAWING THE PALM CIRCUMFERENCE
         cv.circle(
             img=self.data_canvas, 
             center=self.center, 
@@ -149,18 +127,21 @@ class Hand:
             color=Colors.center_color,
             thickness= 1)
         
-        cv.drawContours(self.data_canvas, self.hull, -2, Colors.hull_color, 1)
+        #* DRAWING THE HULL
+        cv.drawContours(
+            image=self.data_canvas, 
+            contours=self.hull, 
+            contourIdx= -2, 
+            color=Colors.hull_color,
+            thickness=1)
 
-
-        if self.center != None:
-            cv.circle(self.data_canvas, self.center, 2, (200, 100, 50), -1)
-            # cv.circle(self.data_canvas, self.center, self.palm_radius, (200, 100, 50), 1)
         cv.imshow("input data canvas", self.data_canvas)
 
 
     def print_data(self) -> None:
         """Prints all the fields of the instance of the hand and wether they are filled."""
         print(f"************ {self.name} *************")
+        #* PLACEHOLDER FOR OUTPUT TEXT
         printout = "{:<2}: {:>50}"
         
         #* CENTER POINT
@@ -175,12 +156,9 @@ class Hand:
         #* CONTOUR POINTS
         if self.contour_points != None:
             print(printout.format("contours", len(self.contour_points)))
-            # print("contours: ", len(self.contour_points))
-        # if self.defects != None:
-        # print("defects: ", len(self.defects))
+        #* HULL    
         if self.hull != None:
             print(printout.format("Hull", len(self.hull)))    
-        # print("vallies")
         #* FINGERS
         for finger in self.fingers:
             if finger.position != None:
@@ -188,15 +166,6 @@ class Hand:
                 
         print("**************************************")
 
-
-    # TODO implement
-    def confirm_orientation(self):
-        raise NotImplementedError()
-
-
-    #TODO implement
-    def confirm_finger_states(self):
-        raise NotImplementedError()
 
 
         

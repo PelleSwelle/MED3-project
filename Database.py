@@ -43,53 +43,43 @@ class Database:
         #*A
         self.hands[0].fingers.append(Finger())
         self.hands[0].fingers[0].title = Title.THUMB_FINGER
-            
-        
-        #*D
-        self.hands[1].fingers.append(Finger(title=Title.INDEX_FINGER))
-        self.hands[1].fingers[0].title = Title.INDEX_FINGER
         
 
         #*F
-        self.hands[2].fingers.append(Finger(title=Title.LITTLE_FINGER))
-        self.hands[2].fingers.append(Finger(title=Title.RING_FINGER))
-        self.hands[2].fingers.append(Finger(title=Title.MIDDLE_FINGER))
-        self.hands[2].fingers[0].title = Title.LITTLE_FINGER
-        self.hands[2].fingers[1].title = Title.RING_FINGER
-        self.hands[2].fingers[2].title = Title.MIDDLE_FINGER
+        self.hands[1].fingers.append(Finger(title=Title.LITTLE_FINGER))
+        self.hands[1].fingers.append(Finger(title=Title.RING_FINGER))
+        self.hands[1].fingers.append(Finger(title=Title.MIDDLE_FINGER))
+        self.hands[1].fingers[0].title = Title.LITTLE_FINGER
+        self.hands[1].fingers[1].title = Title.RING_FINGER
+        self.hands[1].fingers[2].title = Title.MIDDLE_FINGER
         
 
         #*I
-        self.hands[3].fingers.append(Finger(title=Title.LITTLE_FINGER))
-        self.hands[3].fingers[0].title = Title.LITTLE_FINGER
+        self.hands[2].fingers.append(Finger(title=Title.LITTLE_FINGER))
+        self.hands[2].fingers[0].title = Title.LITTLE_FINGER
         
 
         #* L
-        self.hands[4].fingers.append(Finger(title=Title.INDEX_FINGER))
-        self.hands[4].fingers.append(Finger(title=Title.THUMB_FINGER))
-        self.hands[4].fingers[0].title = Title.INDEX_FINGER
-        self.hands[4].fingers[1].title = Title.THUMB_FINGER
+        self.hands[3].fingers.append(Finger(title=Title.INDEX_FINGER))
+        self.hands[3].fingers.append(Finger(title=Title.THUMB_FINGER))
+        self.hands[3].fingers[0].title = Title.INDEX_FINGER
+        self.hands[3].fingers[1].title = Title.THUMB_FINGER
         
 
-        #* V
-        self.hands[5].fingers.append(Finger(title=Title.MIDDLE_FINGER))
-        self.hands[5].fingers.append(Finger(title=Title.INDEX_FINGER))
-        self.hands[5].fingers[0].title = Title.MIDDLE_FINGER
-        self.hands[5].fingers[1].title = Title.INDEX_FINGER
-
         #* W
-        self.hands[6].fingers.append(Finger(title=Title.RING_FINGER))
-        self.hands[6].fingers.append(Finger(title=Title.MIDDLE_FINGER))
-        self.hands[6].fingers.append(Finger(title=Title.INDEX_FINGER))
-        self.hands[6].fingers[0].title = Title.RING_FINGER
-        self.hands[6].fingers[1].title = Title.MIDDLE_FINGER
-        self.hands[6].fingers[2].title = Title.INDEX_FINGER
+        self.hands[4].fingers.append(Finger(title=Title.RING_FINGER))
+        self.hands[4].fingers.append(Finger(title=Title.MIDDLE_FINGER))
+        self.hands[4].fingers.append(Finger(title=Title.INDEX_FINGER))
+        self.hands[4].fingers[0].title = Title.RING_FINGER
+        self.hands[4].fingers[1].title = Title.MIDDLE_FINGER
+        self.hands[4].fingers[2].title = Title.INDEX_FINGER
+
 
         #* Y
-        self.hands[7].fingers.append(Finger(title=Title.LITTLE_FINGER))
-        self.hands[7].fingers.append(Finger(title=Title.THUMB_FINGER))
-        self.hands[7].fingers[0].title = Title.LITTLE_FINGER
-        self.hands[7].fingers[1].title = Title.THUMB_FINGER
+        self.hands[5].fingers.append(Finger(title=Title.LITTLE_FINGER))
+        self.hands[5].fingers.append(Finger(title=Title.THUMB_FINGER))
+        self.hands[5].fingers[0].title = Title.LITTLE_FINGER
+        self.hands[5].fingers[1].title = Title.THUMB_FINGER
         # for i in range(0, len(self.hands)):
         #     print("number of fingers in each hand: ", len(self.hands[i].fingers))
         #     for e in range(0, len(self.hands[i].fingers)) :

@@ -4,7 +4,7 @@ import cv2 as cv
 import numpy as np
 import Colors
 from math import sqrt
-from Hand import Finger
+from Hand import Finger, Title
 
 class Extractor:
 
@@ -253,4 +253,37 @@ class Extractor:
         print("get_list_of_coordinates returns: ", len(list_of_coordinates))
         return list_of_coordinates
 
+    def name_fingers(i, input_hand, thumb_threshold, finger_x, finger_y, finger_length, palm_center, palm_radius, approx_little_length):
+        #* CHECKS FOR THE FINGERS ARE SET UP AS BOOLEANS
+        buffer = 10
+        left_of_palm = finger_x < palm_center[0] - input_hand.palm_radius
+        right_of_palm = finger_x > palm_center[0] + input_hand.palm_radius
+            
+        above_palm_line = finger_y < thumb_threshold
+        under_palm_line = finger_y > thumb_threshold
+            
+        at_palm_center_x = finger_x > palm_center[0] - 10 and finger_x < input_hand.center[0] + 10
+        ring_finger_position = left_of_palm and finger_length > input_hand.palm_radius * 1.2
+        little_finger_position = left_of_palm and finger_length < input_hand.palm_radius * 1.2
+            
+        left_of_center = finger_x < palm_center[0]
+        right_of_center = palm_center[0] + buffer < finger_x
+            
+        straight_above = palm_center[0] - buffer < finger_x < palm_center[0] + buffer
+        center_to_left = palm_center[0] - palm_radius - buffer < finger_x < palm_center[0] + palm_radius
+            # < palm_center[0] + palm_radius + buffer
+
+        if finger_length < approx_little_length and left_of_center:
+            input_hand.fingers[i].title = Title.LITTLE_FINGER
+        elif center_to_left:
+            input_hand.fingers[i].title = Title.RING_FINGER
+        elif straight_above:
+            input_hand.fingers[i].title = Title.MIDDLE_FINGER
+        elif right_of_center:
+            input_hand.fingers[i].title = Title.INDEX_FINGER
+        elif finger_length <approx_little_length and right_of_palm:
+            input_hand.fingers[i].title = Title.THUMB_FINGER
+
+        else:
+            input_hand.fingers[i].title = Title.NOT_SET
     

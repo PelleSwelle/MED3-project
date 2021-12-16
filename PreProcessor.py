@@ -15,35 +15,9 @@ class PreProcessor:
     # def __init__(self) -> None:
     #     self.processing_image = image.img_array
     #     self.canvas = np.zeros((self.processing_image.shape[0], self.processing_image.shape[1]))
-    
-    def blur_gaussian(self, image: np.ndarray) -> np.ndarray:
-        raise NotImplementedError
-
-
-    def gray_scale(self, image: np.ndarray) -> np.ndarray: 
-        """Method for grayscaling an image. Returns the grayscaled image"""
-        return cv.cvtColor(image, cv.COLOR_BGR2GRAY)
-
-    
-    # TODO this is used to calculate the correct threshold for the otsu algorithm
-    # def calculate_threshold() -> int?:
-        # https://learnopencv.com/otsu-thresholding-with-opencv/
-
-
-    def binarize(self, image: np.ndarray, threshold: int) -> np.ndarray:
-        th, thresh = cv.threshold(
-            src=image, 
-            thresh=threshold, 
-            maxval=255, 
-            type=cv.THRESH_BINARY
-        )
-        inverted = cv.bitwise_not(thresh)
-        return inverted
-    
-    def crop(self, image: Image):
-        # TODO set a standard size to make it into
-        raise NotImplementedError
-
+ 
+ 
+  
     def preprocess(self, image: np.ndarray) -> np.ndarray:
         """ combining blurring, grayscalling, thresholding, contouring, and cropping into one"""
 

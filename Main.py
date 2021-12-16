@@ -28,12 +28,12 @@ def fill_hull_list(hand, hull_list):
         hull = cv.convexHull(hand.contours[e])
         hull_list.append(hull)
 
-
 def main():
     #* clear the console
     clear()
 
     #* load the database of signs and images
+    
     database = Database()
     database.load()
 
@@ -43,7 +43,6 @@ def main():
     #* load the different tools to be used.
     preprocesser = PreProcessor()
     extractor = Extractor()
-    # classifier = Classifier()
 
     #* filling database with data
     i = 0
@@ -62,12 +61,12 @@ def main():
         # print("hand.center: ", hand.center)
         hand.contours, _ = cv.findContours(database.images[i], cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
         
-        #* drawing
-        cv.drawContours(hand.data_canvas, 
-            contours=hand.contours, 
-            contourIdx= -1, 
-            color=Colors.contours_color, 
-            thickness=1)
+        # #* drawing
+        # cv.drawContours(hand.data_canvas, 
+        #     contours=hand.contours, 
+        #     contourIdx= -1, 
+        #     color=Colors.contours_color, 
+        #     thickness=1)
 
         #     # Find the convex hull object for each contour
         hull_list = []
@@ -89,13 +88,13 @@ def main():
     
 
     # ***************READ IMAGE AND PREPROCESS*********************
-    input_image = cv.imread("images/alphabet/W.png")
+    #* READ IN IMAGE, INSTANTIATE A HAND AND SHOW IT
+    input_image = cv.imread("images/alphabet/V.png")
     input_hand = Hand(name="input", image=input_image)
     cv.imshow("raw input", input_hand.image)
 
-
+    #* PREPROCESS THE IMAGE TO PREPARE IT FOR FEATURE EXTRACTION
     extraction_image = preprocesser.preprocess(input_hand.image)
-    
     cv.imshow("image ready to be extracted", extraction_image)
 
     # ****************** SET DATA CANVAS SIZE************************
@@ -106,7 +105,6 @@ def main():
     
 
     # # ************** FEATURE EXTRACTION ******************
-    
     input_hand.contours, _ = cv.findContours(
         image=extraction_image,
         mode=cv.RETR_TREE,
@@ -116,9 +114,6 @@ def main():
     input_hand.center, input_hand.palm_radius = extractor.find_center(extraction_image)
     
     
-    # input_hand.palm_circumference = 
-    # input_hand.palm_center = 
-
     #* the width of a finger is a approximately a fourth of the width of the palm
     input_hand.finger_width = input_hand.palm_radius / 2
 
@@ -142,18 +137,12 @@ def main():
         contours=input_hand.contours[0]
     )
 
-    # *get the ends value of the defects
-    # defect_ends = extractor.get_defects_ends(input_hand.defects, input_hand.contours[0])
-
-    #* sort the list according to their x value
-    # defect_ends.sort(key=lambda x: x[0])
-    
     filtered_points = extractor.filter_points(
         coordinate_list=hull_points, 
         threshold=20)
         
     
-    print("no of points after filtering: ", len(filtered_points))
+    print("number of points after filtering: ", len(filtered_points))
     
     #* sort the points according to their x position
     filtered_points.sort(key=lambda x: x[0])
@@ -161,10 +150,7 @@ def main():
     #* APPENDING FINGERS TO THE HAND
     extractor.detect_fingers(extractor, filtered_points, input_hand)
                 
-    #* CHECKING X VALUE OF FINGER TIP TO DETERMINE FINGER IDENTITY
     
-
-
     
     palm_top = input_hand.center[1] - input_hand.palm_radius
     thumb_threshold = palm_top - 30
@@ -175,6 +161,7 @@ def main():
         finger_x: int = input_hand.fingers[i].position[0]
         finger_y: int = input_hand.fingers[i].position[1]
         finger_length = input_hand.fingers[i].length
+        #* SHORTER VARIABLES FOR EFFICIENCY WHEN
         palm_center = input_hand.center
         palm_radius = input_hand.palm_radius
         approx_little_length = palm_radius * 2.6
