@@ -12,12 +12,7 @@ from Hand import Hand
 
 # TODO this should be an interface
 class PreProcessor:
-    # def __init__(self) -> None:
-    #     self.processing_image = image.img_array
-    #     self.canvas = np.zeros((self.processing_image.shape[0], self.processing_image.shape[1]))
  
- 
-  
     def preprocess(self, image: np.ndarray) -> np.ndarray:
         """ combining blurring, grayscalling, thresholding, contouring, and cropping into one"""
 
@@ -35,7 +30,6 @@ class PreProcessor:
         x, y, w, h = cv.boundingRect(contours[0])
 
         cropped_binarized_image = thresh[y:y+h, x:x+w]
-        
         
         print(Colors.blue + f"cropped input image to: {cropped_binarized_image.shape[0]} x {cropped_binarized_image.shape[1]}" + Colors.white)
         

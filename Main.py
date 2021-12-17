@@ -1,8 +1,5 @@
 import cv2 as cv
 import numpy as np
-from numpy.core.defchararray import center
-from numpy.lib.type_check import imag
-from Classifyer import Classifier
 from Database import Database
 import Colors
 from Extractor import Extractor
@@ -31,6 +28,12 @@ def fill_hull_list(hand, hull_list):
 def main():
     #* clear the console
     clear()
+    print("Welcome to the detect-what-letter-from-the-ASL-alphabet-are-you-signing-program.\n")
+    print("At the moment, six letters are implemented, and images of these are stores in ./images/alphabet")
+    print("You can choose between the letters: A, F, I, L, W, Y\n")
+    letter_chosen = input("enter the letter you wish to proceed with:\n")
+    letter_chosen.upper()
+    print("You chose: ", letter_chosen)
 
     #* load the database of signs and images
     
@@ -89,7 +92,8 @@ def main():
 
     # ***************READ IMAGE AND PREPROCESS*********************
     #* READ IN IMAGE, INSTANTIATE A HAND AND SHOW IT
-    input_image = cv.imread("images/alphabet/V.png")
+    input_image = cv.imread("images/alphabet/" + letter_chosen + ".png")
+    print("input_image: ", input_image)
     input_hand = Hand(name="input", image=input_image)
     cv.imshow("raw input", input_hand.image)
 
@@ -132,7 +136,8 @@ def main():
         cv.circle(input_hand.data_canvas, point, 2, (240, 20, 10), -1)
         # cv.line(input_hand.data_canvas, input_hand.center, point, (240, 100, 0), 1)
     
-
+    #* DEFECTS ARE NOT UTILIZED IN THE CURRENT FORM OF THE SOFTWARE, 
+    #* BUT MIGHT PROVE TO BE ESSENTIAL FOR FURTHER DEVELOPMENT
     input_hand.defects = extractor.extract_defects(
         contours=input_hand.contours[0]
     )
@@ -151,57 +156,11 @@ def main():
     extractor.detect_fingers(extractor, filtered_points, input_hand)
                 
     
-    
-    palm_top = input_hand.center[1] - input_hand.palm_radius
-    thumb_threshold = palm_top - 30
-    
-    for i in range(0, len(input_hand.fingers)):
-
-        #* x and y values for comparing
-        finger_x: int = input_hand.fingers[i].position[0]
-        finger_y: int = input_hand.fingers[i].position[1]
-        finger_length = input_hand.fingers[i].length
-        #* SHORTER VARIABLES FOR EFFICIENCY WHEN
-        palm_center = input_hand.center
-        palm_radius = input_hand.palm_radius
-        approx_little_length = palm_radius * 2.6
-        
-        buffer = 10
-        
-        left_of_palm = finger_x < palm_center[0] - input_hand.palm_radius
-        right_of_palm = finger_x > palm_center[0] + input_hand.palm_radius
-        
-        above_palm_line = finger_y < thumb_threshold
-        under_palm_line = finger_y > thumb_threshold
-        
-        at_palm_center_x = finger_x > palm_center[0] - 10 and finger_x < input_hand.center[0] + 10
-        ring_finger_position = left_of_palm and finger_length > input_hand.palm_radius * 1.2
-        little_finger_position = left_of_palm and finger_length < input_hand.palm_radius * 1.2
-        
-        left_of_center = finger_x < palm_center[0]
-        right_of_center = palm_center[0] + buffer < finger_x
-        
-        straight_above = palm_center[0] - buffer < finger_x < palm_center[0] + buffer
-        center_to_left = palm_center[0] - palm_radius - buffer < finger_x < palm_center[0] + palm_radius
-        # < palm_center[0] + palm_radius + buffer
-
-        if finger_length < approx_little_length and left_of_center:
-            input_hand.fingers[i].title = Title.LITTLE_FINGER
-        elif finger_length <approx_little_length and right_of_palm:
-            input_hand.fingers[i].title = Title.THUMB_FINGER
-        elif right_of_center:
-            input_hand.fingers[i].title = Title.INDEX_FINGER
-        elif straight_above:
-            input_hand.fingers[i].title = Title.MIDDLE_FINGER
-        elif center_to_left:
-            input_hand.fingers[i].title = Title.RING_FINGER
-
-        else:
-            input_hand.fingers[i].title = Title.NOT_SET
+    #* IDENTIFY THE FINGERS AND NAME THEM ACCORDINGLY
+    extractor.name_fingers(input_hand)
 
     for i in range(0, len(input_hand.fingers)):
         pprint(vars(input_hand.fingers[i]))
-
     input_hand.imshow_data_canvas()
 
     input_hand.print_data()
@@ -215,6 +174,8 @@ def main():
 
     cv.waitKey(0)
     cv.destroyAllWindows()
+
+
 
 
 
