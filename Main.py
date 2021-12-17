@@ -166,19 +166,15 @@ def main():
     input_hand.print_data()
 
     #* comparing against the database
-   
     for hand in database.hands:
         if hand.fingers == input_hand.fingers:
             print("*********** MATCH! *********** ")
             print("You signed the letter: ", hand.name, "!")
+            
 
+   
     cv.waitKey(0)
     cv.destroyAllWindows()
-
-
-
-
-
 
 
 if __name__=="__main__":
