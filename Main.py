@@ -6,7 +6,7 @@ from Extractor import Extractor
 from Hand import Finger, Title, Hand, Orientation
 
 from PreProcessor import PreProcessor
-from math import dist, sqrt
+# from math import dist, sqrt
 import os
 from pprint import pprint
 
@@ -55,6 +55,7 @@ def main():
         i+=1
     
     
+    
     i = 0
     for hand in database.hands:
         hand.width = database.images[i].shape[0]
@@ -63,7 +64,7 @@ def main():
         hand.center, hand.palm_circumference = extractor.find_center(database.images[i])
         # print("hand.center: ", hand.center)
         hand.contours, _ = cv.findContours(database.images[i], cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
-        
+        print("hand.contours: ", hand.contours)
         # #* drawing
         # cv.drawContours(hand.data_canvas, 
         #     contours=hand.contours, 
@@ -113,6 +114,7 @@ def main():
         image=extraction_image,
         mode=cv.RETR_TREE,
         method=cv.CHAIN_APPROX_SIMPLE)
+
 
 
     input_hand.center, input_hand.palm_radius = extractor.find_center(extraction_image)

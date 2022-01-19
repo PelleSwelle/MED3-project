@@ -23,6 +23,7 @@ class Database:
         #* get filenames from the given directory
         for file in os.listdir(self.dir):
             self.image_strings.append(file)
+            print("image_strings: ", file)
         
         for title in self.image_strings:
             # print(title)

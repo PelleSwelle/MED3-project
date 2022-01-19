@@ -16,7 +16,11 @@ class PreProcessor:
     def preprocess(self, image: np.ndarray) -> np.ndarray:
         """ combining blurring, grayscalling, thresholding, contouring, and cropping into one"""
 
-        gaussian_blurred = cv.GaussianBlur(image, [5, 5], 1)
+        gaussian_blurred = cv.GaussianBlur(
+            src=image, # source-image
+            ksize=[5, 5], # kernelsize
+            # sigmaX=1)
+            sigmaX=5) 
         cv.imshow("gaussian blurred", gaussian_blurred)
         
         grayscaled = cv.cvtColor(gaussian_blurred, cv.COLOR_BGR2GRAY)

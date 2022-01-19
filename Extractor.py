@@ -15,8 +15,6 @@ class Extractor:
 
         min_val, max_val, min_loc, max_loc = cv.minMaxLoc(dist_transform, mask)
         
-        # cv.imshow("distance transform", mask)
-
         return max_loc, int(max_val)
 
     
@@ -108,7 +106,7 @@ class Extractor:
             finger_x: int = hand.fingers[i].position[0]
             finger_y: int = hand.fingers[i].position[1]
             finger_length = hand.fingers[i].length
-            #* SHORTER VARIABLES FOR EFFICIENCY WHEN
+            #* SHORTER VARIABLES FOR EFFICIENCY
             palm_center = hand.center
             palm_radius = hand.palm_radius
             approx_little_length = palm_radius * 2.6
